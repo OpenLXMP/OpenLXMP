@@ -596,4 +596,5 @@ EOF
 
     /etc/init.d/mysql restart
     /etc/init.d/mysql stop
+    cd ${SRC_DIR}
 }

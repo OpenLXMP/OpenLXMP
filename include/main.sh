@@ -235,10 +235,18 @@ Do_Query()
 
 Enable_Startup()
 {
-    local init_name="$1"
+    local service_name="$1"
+    if [[ -s /etc/systemd/system/${service_name}.service ]]; then
+        systemctl daemon-reload
+        systemctl enable ${service_name}.service
+    fi
 }
 
 Disable_Startup()
 {
-    local init_name="$2"
+    local service_name="$1"
+    if [[ -s /etc/systemd/system/${service_name}.service ]]; then
+        systemctl daemon-reload
+        systemctl disable ${service_name}.service
+    fi
 }

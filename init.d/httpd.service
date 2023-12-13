@@ -4,8 +4,8 @@ After=network.target sshd-keygen.target
 
 [Service]
 Type=forking
-ExecStart=/usr/local/httpd/bin/httpd
-ExecStop=/usr/local/httpd/bin/httpd -s stop
+ExecStart=/usr/local/apache/bin/httpd
+ExecStop=/usr/local/apache/bin/httpd -s stop
 ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]
