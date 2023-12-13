@@ -162,8 +162,13 @@ Download_Files()
     Download "${LibMcrypt_URL}" "${LibMcrypt_Ver}.tar.bz2"
     Download "${Mrcypt_URL}" "${Mrcypt_Ver}.tar.gz"
     Download "${Mhash_URL}" "${Mhash_Ver}.tar.bz2"
-    Download "${OpenSSL_URL}" "${OpenSSL_Ver}.tar.gz"
-    Download "${Nginx_URL}" "${Nginx_Ver}.tar.gz"
+    if [[ "${STACK}" == "lnmp" ]]; then
+        Download "${Nginx_URL}" "${Nginx_Ver}.tar.gz"
+    elif [[ "${STACK}" == "lamp" ]]; then
+        Download "${APR_URL}" "${APR_Ver}.tar.bz2"
+        Download "${APR_Util_URL}" "${APR_Util_Ver}.tar.bz2"
+        Download "${Apache_URL}" "${Apache_Ver}.tar.bz2"
+    fi
 }
 
 Make_And_Install()
@@ -265,6 +270,40 @@ Install_Freetype()
     Make_And_Install
     cd ${SRC_DIR}
     rm -rf ${Freetype_Ver}
+}
+
+Install_Libzip()
+{
+    if Cmd_Exists "dpkg"; then
+        local libzip_ver=$(dpkg -s libzip-dev | grep Version | cut -d' ' -f2)
+    elif Cmd_Exists "rpm"; then
+        local libzip_ver=$(rpm -q --queryformat '%{VERSION}' libzip-devel)
+    fi
+    if echo ${libzip_ver} | grep -Eq "^0\.(0[0-9]|10)"; then
+        Echo_Blue "Installing ${Libzip_Ver}..."
+        cd ${SRC_DIR}
+        Download "${Libzip_URL}" "${Libzip_Ver}.tar.xz"
+        Tar_Cd ${Libzip_Ver}.tar.xz ${Libzip_Ver}
+        ./configure
+        Make_And_Install
+        export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig"
+        ldconfig
+        cd ${SRC_DIR}
+        rm -rf ${Libzip_Ver}
+    fi
+}
+
+Install_Nghttp2()
+{
+    Echo_Blue "Installing ${Nghttp2_Ver}..."
+    cd ${SRC_DIR}
+    Download "${Nghttp2_URL}" "${Nghttp2_Ver}.tar.xz"
+    Tar_Cd ${Nghttp2_Ver}.tar.xz ${Nghttp2_Ver}
+    ./configure --prefix=/usr/local/nghttp2
+    Make_And_Install
+    cd ${SRC_DIR}
+    rm -rf ${Nghttp2_Ver}
+    apache_with_nghttp2='--with-nghttp2=/usr/local/nghttp2'
 }
 
 Redhat_Lib_Opt()

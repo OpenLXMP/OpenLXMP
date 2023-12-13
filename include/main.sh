@@ -148,9 +148,9 @@ Print_Sys_Info()
     Echo_Blue "OS: ${DISTRO} ${DISTRO_VERSION}"
     CPUModel=$(awk -F':' '/model name/ {print $2}' /proc/cpuinfo | uniq | sed 's/^ *//')
     CPUCores=$(awk '/processor/ {count++} END {print count}' /proc/cpuinfo)
-    MemTotal=$(awk '/MemTotal/ {print $2/1024}' /proc/meminfo)
-    MemAvailable=$(awk '/MemAvailable/ {print $2/1024}' /proc/meminfo)
-    SwapTotal=$(awk '/SwapTotal/ {print $2/1024}' /proc/meminfo)
+    MemTotal=$(awk '/MemTotal/ {printf "%.0f\n", $2/1024}' /proc/meminfo)
+    MemAvailable=$(awk '/MemAvailable/ {printf "%.0f\n", $2/1024}' /proc/meminfo)
+    SwapTotal=$(awk '/SwapTotal/ {printf "%.0f\n", $2/1024}' /proc/meminfo)
     Echo_Blue "CPU Model: ${CPUModel}"
     Echo_Blue "CPU Cores: ${CPUCores}"
     Echo_Blue "Total Memory: ${MemTotal}"

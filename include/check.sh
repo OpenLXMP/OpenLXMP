@@ -27,10 +27,29 @@ Check_MySQL()
 
 Check_PHP()
 {
-    if [[ -s /usr/local/php/sbin/php-fpm && -s /usr/local/php/etc/php.ini && -s /usr/local/php/bin/php ]]; then
-        Echo_Green "PHP: OK"
-        Echo_Green "PHP-FPM: OK"
-        PHP_Install_Status='y'
+    if [[ "${STACK}" == "lnmp" ]]; then
+        if [[ -s /usr/local/php/sbin/php-fpm && -s /usr/local/php/etc/php.ini && -s /usr/local/php/bin/php ]]; then
+            Echo_Green "PHP: OK"
+            Echo_Green "PHP-FPM: OK"
+            PHP_Install_Status='y'
+        else
+            Echo_Red "Error: PHP install failed."
+        fi
+    else
+        if [[ -s /usr/local/php/etc/php.ini && -s /usr/local/php/bin/php ]]; then
+            Echo_Green "PHP: OK"
+            PHP_Install_Status='y'
+        else
+            Echo_Red "Error: PHP install failed."
+        fi
+    fi
+}
+
+Check_Apache()
+{
+    if [[ -s /usr/local/apache/bin/httpd && -s /usr/local/apache/conf/httpd.conf ]]; then
+        Echo_Green "Apache: OK"
+        Apache_Install_Status='y'
     else
         Echo_Red "Error: PHP install failed."
     fi
@@ -52,6 +71,18 @@ LNMP_Check()
     Check_MySQL
     Check_PHP
     if [[ "${Nginx_Install_Status}" == "y" && "${MySQL_Install_Status}" == "y" && "${PHP_Install_Status}" == "y" ]]; then
+        Sucess_Msg
+    else
+        Failed_Msg
+    fi
+}
+
+LAMP_Check()
+{
+    Check_Apache
+    Check_MySQL
+    Check_PHP
+    if [[ "${Apache_Install_Status}" == "y" && "${MySQL_Install_Status}" == "y" && "${PHP_Install_Status}" == "y" ]]; then
         Sucess_Msg
     else
         Failed_Msg

@@ -14,12 +14,6 @@ fi
 
 CUR_DIR=$(readlink -f $(dirname "$0"))
 SRC_DIR="${CUR_DIR}/src"
-STACK="$1"
-if [[ "${STACK}" = "" ]]; then
-    STACK="lnmp"
-else
-    STACK=$1
-fi
 
 LXMP_Ver='1.0'
 . ${CUR_DIR}/include/main.sh
@@ -32,6 +26,7 @@ Get_Distro_Info
 . ${CUR_DIR}/include/nginx.sh
 . ${CUR_DIR}/include/mysql.sh
 . ${CUR_DIR}/include/php.sh
+. ${CUR_DIR}/include/apache.sh
 . ${CUR_DIR}/include/check.sh
 
 clear
@@ -98,4 +93,46 @@ LNMP_Stack()
     LNMP_Check
 }
 
-LNMP_Stack 2>&1 | tee /root/lnmp-install.log
+LAMP_Stack()
+{
+    Main_Menu
+    Init
+    Install_Apache
+    case "${DBSelect}" in
+        1) Install_MySQL_55 ;;
+        2) Install_MySQL_56 ;;
+        3) Install_MySQL_57 ;;
+        4) Install_MySQL_80 ;;
+        5) Install_MySQL_82 ;;
+    esac
+
+    PHP_Options
+    case "${PHPSelect}" in
+        1) Install_PHP_56 ;;
+        2) Install_PHP_70 ;;
+        3) Install_PHP_71 ;;
+        4) Install_PHP_72 ;;
+        5) Install_PHP_73 ;;
+        6) Install_PHP_74 ;;
+        7) Install_PHP_80 ;;
+        8) Install_PHP_81 ;;
+        9) Install_PHP_82 ;;
+        10) Install_PHP_83 ;;
+    esac
+    LAMP_Check
+}
+
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        lnmp)
+            STACK='lnmp'
+            LNMP_Stack 2>&1 | tee /root/lnmp-install.log
+            ;;
+        lamp)
+            STACK='lamp'
+            LAMP_Stack 2>&1 | tee /root/lnmp-install.log
+            ;;
+    esac
+    shift
+done

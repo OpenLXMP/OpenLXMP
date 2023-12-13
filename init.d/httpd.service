@@ -1,0 +1,12 @@
+[Unit]
+Description=httpd server daemon
+After=network.target sshd-keygen.target
+
+[Service]
+Type=forking
+ExecStart=/usr/local/httpd/bin/httpd
+ExecStop=/usr/local/httpd/bin/httpd -s stop
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target
