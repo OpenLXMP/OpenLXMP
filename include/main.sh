@@ -237,6 +237,7 @@ Enable_Startup()
 {
     local service_name="$1"
     if [[ -s /etc/systemd/system/${service_name}.service ]]; then
+        Echo_Blue "Enable ${service_name} to start on boot..."
         systemctl daemon-reload
         systemctl enable ${service_name}.service
     fi
@@ -246,6 +247,7 @@ Disable_Startup()
 {
     local service_name="$1"
     if [[ -s /etc/systemd/system/${service_name}.service ]]; then
+        Echo_Blue "Disable ${service_name} from starting on boot..."
         systemctl daemon-reload
         systemctl disable ${service_name}.service
     fi

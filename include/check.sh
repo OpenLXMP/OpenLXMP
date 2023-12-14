@@ -55,6 +55,19 @@ Check_Apache()
     fi
 }
 
+LNMP_Startup()
+{
+    Enable_Startup nginx
+    Enable_Startup mysql
+    Enable_startup php-fpm
+}
+
+LAMP_Startup()
+{
+    Enable_Startup httpd
+    Enable_Startup mysql
+}
+
 Sucess_Msg()
 {
     echo "You have successfully install LNMP."
@@ -71,6 +84,7 @@ LNMP_Check()
     Check_MySQL
     Check_PHP
     if [[ "${Nginx_Install_Status}" == "y" && "${MySQL_Install_Status}" == "y" && "${PHP_Install_Status}" == "y" ]]; then
+        LNMP_Startup
         Sucess_Msg
     else
         Failed_Msg
@@ -83,6 +97,7 @@ LAMP_Check()
     Check_MySQL
     Check_PHP
     if [[ "${Apache_Install_Status}" == "y" && "${MySQL_Install_Status}" == "y" && "${PHP_Install_Status}" == "y" ]]; then
+        LAMP_Startup
         Sucess_Msg
     else
         Failed_Msg
