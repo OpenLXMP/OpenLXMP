@@ -167,6 +167,7 @@ Press_Start()
 {
     Echo_Green "Press any key to start...or Press Ctrl+c to cancel."
     read -n 1 -s
+    Start_Time=$SECONDS
 }
 
 Download()

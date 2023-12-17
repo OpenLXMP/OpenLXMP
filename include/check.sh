@@ -70,7 +70,9 @@ LAMP_Startup()
 
 Sucess_Msg()
 {
-    echo "You have successfully install LNMP."
+    End_Time=$SECONDS
+    Echo_Green "Installation completed in $(( (End_Time - Start_Time) / 60 )) minutes."
+    Echo_Green "You have successfully install LNMP."
 }
 
 Failed_Msg()
