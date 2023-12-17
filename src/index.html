@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenLXMP Installation Success</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f5f5f5;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        p {
+            color: #555;
+            line-height: 1.5;
+        }
+
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        button {
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        // JavaScript代码
+        function toggleLanguage() {
+            var languageButton = document.getElementById("languageButton");
+            var body = document.body;
+
+            if (languageButton.innerHTML === "中文") {
+                languageButton.innerHTML = "English";
+                body.innerHTML = getEnglishContent();
+            } else {
+                languageButton.innerHTML = "中文";
+                body.innerHTML = getChineseContent();
+            }
+        }
+
+        function getChineseContent() {
+            return `
+                <h1>OpenLXMP一键安装包安装成功</h1>
+                <p>您已成功安装OpenLXMP一键安装包。</p>
+                <p>OpenLXMP一键安装包是一个方便快捷的工具，用于轻松安装和配置OpenLXMP环境。</p>
+                <p>官方网站：<a href="https://openlxmp.com">https://openlxmp.com</a></p>
+                <p>GitHub仓库：<a href="https://github.com/OpenLXMP/OpenLXMP">https://github.com/OpenLXMP/OpenLXMP</a></p>
+            `;
+        }
+
+        function getEnglishContent() {
+            return `
+                <h1>OpenLXMP Installation Success</h1>
+                <p>You have successfully installed the OpenLXMP One-Click Installation Package.</p>
+                <p>OpenLXMP One-Click Installation Package is a convenient tool for easy installation and configuration of the OpenLXMP environment.</p>
+                <p>Official Website: <a href="https://openlxmp.com">https://openlxmp.com</a></p>
+                <p>GitHub Repository: <a href="https://github.com/OpenLXMP/OpenLXMP">https://github.com/OpenLXMP/OpenLXMP</a></p>
+            `;
+        }
+    </script>
+</head>
+<body>
+    <button id="languageButton" onclick="toggleLanguage()">中文</button>
+    <script>
+        // 根据浏览器语言自动切换
+        var userLanguage = navigator.language || navigator.userLanguage;
+        if (userLanguage.toLowerCase().includes("zh")) {
+            document.body.innerHTML = getChineseContent();
+        } else {
+            document.body.innerHTML = getEnglishContent();
+        }
+    </script>
+</body>
+</html>

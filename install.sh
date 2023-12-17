@@ -27,6 +27,7 @@ Get_Distro_Info
 . ${CUR_DIR}/include/mysql.sh
 . ${CUR_DIR}/include/php.sh
 . ${CUR_DIR}/include/apache.sh
+. ${CUR_DIR}/include/web.sh
 . ${CUR_DIR}/include/check.sh
 
 clear
@@ -90,6 +91,7 @@ LNMP_Stack()
         9) Install_PHP_82 ;;
         10) Install_PHP_83 ;;
     esac
+    Install_Default_Web
     LNMP_Check
 }
 
@@ -119,6 +121,7 @@ LAMP_Stack()
         9) Install_PHP_82 ;;
         10) Install_PHP_83 ;;
     esac
+    Install_Default_Web
     LAMP_Check
 }
 
