@@ -2,10 +2,14 @@
 
 PHP_With_Fileinfo()
 {
-    if [[ "${MemTotal}" -gt 1024 ]]; then
-        with_fileinfo=''
+    if [[ "${Enable_PHP_Fileinfo}" == "n" ]]; then
+        if [[ "${MemTotal}" -gt 950 ]]; then
+            with_fileinfo=''
+        else
+            with_fileinfo='--disable-fileinfo'
+        fi
     else
-        with_fileinfo='--disable-fileinfo'
+        with_fileinfo=''
     fi
 }
 
@@ -35,6 +39,78 @@ PHP_OpenSSL3_Patch()
     fi
 }
 
+PHP_With_LDAP()
+{
+    if [[ "${Enable_PHP_LDAP}" == "y" ]]; then
+        if [[ "${PM}" = "yum" ]]; then
+            yum -y install openldap-devel cyrus-sasl-devel
+            if [ "${ARCH}" == "x86_64" ]; then
+                ln -sf /usr/lib64/libldap* /usr/lib/
+                ln -sf /usr/lib64/liblber* /usr/lib/
+            fi
+        elif [[ "${PM}" = "apt" ]]; then
+            apt-get install -y libldap2-dev libsasl2-dev
+            if [ -s /usr/lib/x86_64-linux-gnu/libldap.so ]; then
+                ln -sf /usr/lib/x86_64-linux-gnu/libldap.so /usr/lib/
+                ln -sf /usr/lib/x86_64-linux-gnu/liblber.so /usr/lib/
+            fi
+        fi
+        with_ldap='--with-ldap --with-ldap-sasl'
+    else
+        with_ldap=''
+    fi
+}
+
+PHP_With_Bz2()
+{
+    if [[ "${Enable_PHP_Bz2}" == "y" ]]; then
+        Install_Libzip
+        with_bz2='--with-bz2'
+    else
+        with_bz2=''
+    fi
+}
+
+PHP_With_Sodium()
+{
+    if [[ "${Enable_PHP_Sodium}" == "y" ]]; then
+        if [[ "${PM}" = "yum" ]]; then
+            yum install epel-release -y
+            yum install libsodium-devel -y
+        elif [[ "${PM}" = "apt" ]]; then
+            apt-get install libsodium-dev -y
+        fi
+        if echo "${PHP_Ver}" | grep -Eqi "php-7.[2-4].*|php-8.*"; then
+            with_sodium='--with-sodium'
+        else
+            Echo_Red 'php 7.1 and below do not support the sodium extension, only support libsodium-php 3rd party extension.'
+            with_sodium=''
+        fi
+    fi
+}
+
+PHP_With_Imap()
+{
+    if [[ "${Enable_PHP_Imap}" == "y" ]]; then
+        if [[ "${PM}" = "yum" ]]; then
+            yum install epel-release -y
+            local packages
+            for packages in libc-client-devel krb5-devel uw-imap-devel;
+            do yum install ${packages} -y; done
+            if echo "${CentOS_Version}" | grep -Eqi "^9" || echo "${Alma_Version}" | grep -Eqi "^9" || echo "${Rocky_Version}" | grep -Eqi "^9"; then
+                rpm -ivh http://rpms.remirepo.net/enterprise/9/remi/${ARCH}/libc-client-2007f-30.el9.remi.${ARCH}.rpm
+                rpm -ivh http://rpms.remirepo.net/enterprise/9/remi/${ARCH}/uw-imap-devel-2007f-30.el9.remi.${ARCH}.rpm
+            fi
+            [[ -s /usr/lib64/libc-client.so ]] && ln -sf /usr/lib64/libc-client.so /usr/lib/libc-client.so
+        elif [[ "${PM}" = "apt" ]]; then
+            apt-get install libc-client-dev libkrb5-dev -y
+        fi
+        with_imap='--with-imap --with-imap-ssl --with-kerberos'
+    else
+        with_imap=''
+    fi
+}
+
 PHP_Options()
 {
     PHP_With_Fileinfo
@@ -44,6 +120,7 @@ PHP_Options()
         php_with_n_a='--with-apxs2=/usr/local/apache/bin/apxs'
         sed -i "s|#!/replace/with/path/to/perl/interpreter -w|#!$(which perl) -w|g" /usr/local/apache/bin/apxs
     fi
+    php_with_options="${with_fileinfo} ${with_ldap} ${with_bz2} ${with_sodium}"
 }
 
 Create_PHPFPM_Conf()
@@ -111,7 +188,8 @@ Install_PHP_56()
     --enable-exif \
     ${with_fileinfo} \
     --enable-opcache \
-    --with-xsl
+    --with-xsl \
+    ${php_with_options}
 
     PHP_Make_And_Install
 
@@ -156,7 +234,8 @@ Install_PHP_70()
     --enable-exif \
     ${with_fileinfo} \
     --enable-opcache \
-    --with-xsl
+    --with-xsl \
+    ${php_with_options}
 
     PHP_Make_And_Install
 
@@ -206,7 +285,8 @@ Install_PHP_71()
     ${with_fileinfo} \
     --enable-intl \
     --enable-opcache \
-    --with-xsl
+    --with-xsl \
+    ${php_with_options}
 
     PHP_Make_And_Install
 
@@ -255,7 +335,8 @@ Install_PHP_72()
     ${with_fileinfo} \
     --enable-intl \
     --enable-opcache \
-    --with-xsl
+    --with-xsl \
+    ${php_with_options}
 
     PHP_Make_And_Install
 
@@ -306,7 +387,8 @@ Install_PHP_73()
     --enable-intl \
     --enable-opcache \
     --with-xsl \
-    --with-pear
+    --with-pear \
+    ${php_with_options}
 
     PHP_Make_And_Install
 
@@ -354,7 +436,8 @@ Install_PHP_74()
     --enable-opcache \
     --with-xsl \
     --with-pear \
-    --with-webp
+    --with-webp \
+    ${php_with_options}
 
     PHP_Make_And_Install
 
@@ -403,7 +486,8 @@ Install_PHP_80()
     --enable-opcache \
     --with-xsl \
     --with-pear \
-    --with-webp
+    --with-webp \
+    ${php_with_options}
 
     PHP_Make_And_Install
 
@@ -451,7 +535,8 @@ Install_PHP_81()
     --enable-opcache \
     --with-xsl \
     --with-pear \
-    --with-webp
+    --with-webp \
+    ${php_with_options}
 
     PHP_Make_And_Install
 
@@ -499,7 +584,8 @@ Install_PHP_82()
     --enable-opcache \
     --with-xsl \
     --with-pear \
-    --with-webp
+    --with-webp \
+    ${php_with_options}
 
     PHP_Make_And_Install
 
@@ -547,7 +633,8 @@ Install_PHP_83()
     --enable-opcache \
     --with-xsl \
     --with-pear \
-    --with-webp
+    --with-webp \
+    ${php_with_options}
 
     PHP_Make_And_Install
 

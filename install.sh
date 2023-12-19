@@ -136,6 +136,24 @@ while [[ $# -gt 0 ]]; do
             STACK='lamp'
             LAMP_Stack 2>&1 | tee /root/lnmp-install.log
             ;;
+        --php_fileinfo)
+            Enable_PHP_Fileinfo='y'
+            ;;
+        --php_ldap)
+            Enable_PHP_LDAP='y'
+            ;;
+        --php_bz2)
+            Enable_PHP_Bz2='y'
+            ;;
+        --php_sodium
+            Enable_PHP_Sodium='y'
+            ;;
+        --php_imap
+            Enable_PHP_Imap='y'
+            ;;
+        --help|-h|*)
+            Help_Menu
+            ;;
     esac
     shift
 done
