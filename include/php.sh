@@ -120,7 +120,7 @@ PHP_Options()
         php_with_n_a='--with-apxs2=/usr/local/apache/bin/apxs'
         sed -i "s|#!/replace/with/path/to/perl/interpreter -w|#!$(which perl) -w|g" /usr/local/apache/bin/apxs
     fi
-    php_with_options="${with_fileinfo} ${with_ldap} ${with_bz2} ${with_sodium}"
+    php_with_options="${with_fileinfo} ${with_ldap} ${with_bz2} ${with_sodium} ${PHP_Modules_Options}"
 }
 
 Create_PHPFPM_Conf()

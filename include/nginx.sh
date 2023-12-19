@@ -16,7 +16,8 @@ Install_Nginx()
     --with-stream_ssl_module \
     --with-stream_ssl_preread_module \
     --with-http_realip_module \
-    --with-openssl=${SRC_DIR}/${OpenSSL_Ver}
+    --with-openssl=${SRC_DIR}/${OpenSSL_Ver} \
+    ${Nginx_Modules_Options}
 
     Make_And_Install
 
