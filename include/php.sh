@@ -115,6 +115,9 @@ PHP_Options()
 {
     PHP_With_Fileinfo
     PHP_With_ICU
+    PHP_With_LDAP
+    PHP_With_Bz2
+    PHP_With_Sodium
     php_with_n_a='--enable-fpm --with-fpm-user=www --with-fpm-group=www'
     if [[ "${STACK}" == "lamp" ]]; then
         php_with_n_a='--with-apxs2=/usr/local/apache/bin/apxs'
