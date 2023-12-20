@@ -14,6 +14,7 @@ fi
 
 CUR_DIR=$(readlink -f $(dirname "$0"))
 SRC_DIR="${CUR_DIR}/src"
+STACK='lnmp'
 
 LXMP_Ver='1.0'
 . ${CUR_DIR}/include/main.sh
@@ -126,15 +127,22 @@ LAMP_Stack()
 }
 
 
-while [[ $# -gt 0 ]]; do
+while :; do
+    [ -z "$1" ] && break
     case $1 in
-        lnmp)
+        --lnmp)
+            if [[ "${STACK}" == "lamp" ]]; then
+                echo "Error: --lnmp and --lamp are mutually exclusive."
+                exit 1
+            fi
             STACK='lnmp'
-            LNMP_Stack 2>&1 | tee /root/lnmp-install.log
             ;;
-        lamp)
+        --lamp)
+            if [[ "${STACK}" == "lnmp" ]]; then
+                echo "Error: --lnmp and --lamp are mutually exclusive."
+                exit 1
+            fi
             STACK='lamp'
-            LAMP_Stack 2>&1 | tee /root/lnmp-install.log
             ;;
         --php_fileinfo)
             Enable_PHP_Fileinfo='y'
@@ -145,15 +153,30 @@ while [[ $# -gt 0 ]]; do
         --php_bz2)
             Enable_PHP_Bz2='y'
             ;;
-        --php_sodium
+        --php_sodium)
             Enable_PHP_Sodium='y'
             ;;
-        --php_imap
+        --php_imap)
             Enable_PHP_Imap='y'
             ;;
-        --help|-h|*)
+        --help|-h)
             Help_Menu
+            exit 0
+            ;;
+        *)
+            Echo_Red "Invalid option: $1"
+            Help_Menu
+            exit 1
             ;;
     esac
     shift
 done
+
+if [[ -z "${STACK}" ]]; then
+    Echo_Red "lnmp or lamp parameter are required."
+    exit 1
+elif [[ "${STACK}" == "lnmp" ]]; then
+    LNMP_Stack 2>&1 | tee /root/openlxmp-install.log
+elif [[ "${STACK}" == "lamp" ]]; then
+    LAMP_Stack 2>&1 | tee /root/openlxmp-install.log
+fi

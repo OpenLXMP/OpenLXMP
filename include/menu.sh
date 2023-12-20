@@ -150,10 +150,10 @@ Main_Menu()
 
 Help_Menu()
 {
-    echo "Usage: $0 [OPTIONS]"
+    echo "Usage: $0 {lnmp|lamp} [OPTIONS]"
     echo "  -h, --help      Display this help menu"
-    echo "  lnmp            Install lnmp stack"
-    echo "  lamp            Install lamp stack"
+    echo "  --lnmp          Install lnmp stack"
+    echo "  --lamp          Install lamp stack"
     echo "  --php_fileinfo  Install PHP fileinfo extension"
     echo "  --php_ldap      Install PHP LDAP extension"
     echo "  --php_bz2       Install PHP bz2 extension"
