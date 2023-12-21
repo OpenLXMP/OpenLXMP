@@ -43,6 +43,7 @@ Init()
 {
     Press_Start
     Print_Sys_Info
+    Print_Install_Info
     Set_Timezone
     Sync_DateTime
     Disable_Selinux

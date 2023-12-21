@@ -163,6 +163,29 @@ Print_Sys_Info()
     uptime
 }
 
+Print_Install_Info()
+{
+    Echo_Blue "List install information..."
+    Echo_Blue "OpenLXMP Ver: ${LXMP_Ver}"
+    Echo_Blue "Stack: ${STACK}"
+    Echo_Blue "Nginx addition module: ${Nginx_Modules_Options}"
+    Echo_Blue "PHP addition extension: ${PHP_Modules_Options}"
+    Echo_Blue "Default Website dir: ${Default_Website_Dir}"
+    Echo_Blue "Default MySQL data dir: ${Default_MySQL_Data_Dir}"
+    Echo_Blue "PHP extension fileinfo: ${Enable_PHP_Fileinfo}"
+    Echo_Blue "PHP extension ldap: ${Enable_PHP_LDAP}"
+    Echo_Blue "PHP extension fileinfo: ${Enable_PHP_Bz2}"
+    Echo_Blue "PHP extension sodium: ${Enable_PHP_Sodium}"
+    Echo_Blue "PHP extension imap: ${Enable_PHP_Imap}"
+    Echo_Blue "Timezone: ${TimeZone}"
+    if [[ "${STACK}" == "lnmp" ]]; then
+        Echo_Blue "${Nginx_Ver}"
+    elif [[ "${STACK}" == "lamp" ]]; then
+        Echo_Blue "${Apache_Ver}"
+    fi
+    Echo_Blue "${PHP_Ver}"
+}
+
 Press_Start()
 {
     Echo_Green "Press any key to start...or Press Ctrl+c to cancel."
