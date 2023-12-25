@@ -1,0 +1,1 @@
+OpenLXMP是一个使用Bash shell编写的LNMP、LAMP环境的一键安装包，使用OpenLXMP可以方便快捷的安装配置LNMP、LAMP环境。

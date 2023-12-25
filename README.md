@@ -1,0 +1,1 @@
+OpenLXMP is a one-click installation package for LNMP and LAMP environments written in Bash shell. Using OpenLXMP, you can easily and quickly install and configure LNMP and LAMP environments.
