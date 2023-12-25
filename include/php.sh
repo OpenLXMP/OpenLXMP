@@ -154,9 +154,19 @@ request_terminate_timeout = 100
 request_slowlog_timeout = 0
 slowlog = var/log/slow.log
 EOF
-        \cp ${SRC_DIR}/${PHP_Ver}/sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
-        \cp ${CUR_DIR}/init.d/php-fpm.service /etc/systemd/system/php-fpm.service
-        chmod +x /etc/init.d/php-fpm
+    \cp ${SRC_DIR}/${PHP_Ver}/sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
+    \cp ${CUR_DIR}/init.d/php-fpm.service /etc/systemd/system/php-fpm.service
+    chmod +x /etc/init.d/php-fpm
+
+    Echo_Blue "Create PHP symbolic link..."
+    ln -sf /usr/local/php/bin/php /usr/bin/php
+    ln -sf /usr/local/php/bin/phpize /usr/bin/phpize
+    ln -sf /usr/local/php/bin/pear /usr/bin/pear
+    ln -sf /usr/local/php/bin/pecl /usr/bin/pecl
+
+    Echo_Blue "Configure pear & pecl..."
+    pear config-set php_ini /usr/local/php/etc/php.ini
+    pecl config-set php_ini /usr/local/php/etc/php.ini
 }
 
 Install_PHP_56()

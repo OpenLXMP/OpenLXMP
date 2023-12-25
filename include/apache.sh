@@ -41,6 +41,8 @@ Install_Apache()
 
     Make_And_Install
 
+    ln -sf /usr/local/apache/bin/httpd /usr/bin/httpd
+
     \cp ${CUR_DIR}/conf/httpd.conf /usr/local/apache/conf/httpd.conf
     \cp ${CUR_DIR}/conf/httpd-default.conf /usr/local/apache/conf/extra/httpd-default.conf
     \cp ${CUR_DIR}/conf/httpd-ssl.conf /usr/local/apache/conf/extra/httpd-ssl.conf
