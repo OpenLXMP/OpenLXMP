@@ -44,15 +44,16 @@ PHP_With_LDAP()
     if [[ "${Enable_PHP_LDAP}" == "y" ]]; then
         if [[ "${PM}" = "yum" ]]; then
             yum -y install openldap-devel cyrus-sasl-devel
-            if [ "${ARCH}" == "x86_64" ]; then
+            if [[ "${ARCH}" == "x86_64" || "${ARCH}" == "aarch64" ]]; then
                 ln -sf /usr/lib64/libldap* /usr/lib/
                 ln -sf /usr/lib64/liblber* /usr/lib/
             fi
         elif [[ "${PM}" = "apt" ]]; then
             apt-get install -y libldap2-dev libsasl2-dev
-            if [ -s /usr/lib/x86_64-linux-gnu/libldap.so ]; then
-                ln -sf /usr/lib/x86_64-linux-gnu/libldap.so /usr/lib/
-                ln -sf /usr/lib/x86_64-linux-gnu/liblber.so /usr/lib/
+            if [[ "${ARCH}" == "x86_64" || "${ARCH}" == "aarch64" ]]; then
+                ln -sf /usr/lib/${ARCH}-linux-gnu/libldap.so /usr/lib/
+                ln -sf /usr/lib/${ARCH}-linux-gnu/libldap_r.a /usr/lib/
+                ln -sf /usr/lib/${ARCH}-linux-gnu/liblber.so /usr/lib/
             fi
         fi
         with_ldap='--with-ldap --with-ldap-sasl'
