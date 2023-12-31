@@ -585,7 +585,7 @@ EOF
             Do_Query "ALTER USER 'root'@'localhost' IDENTIFIED BY '${DBRootPasswd}';"
             [ $? -eq 0 ] && echo "MySQL root password set Sucessfully." || echo "Failed to set MySQL root password!"
         fi
-        rm -f ~/.emptymy.cnf
+        rm -f ~/.my.cnf
     fi
 
     ln -sf /usr/local/mysql/bin/mysql /usr/bin/mysql
