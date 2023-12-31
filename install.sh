@@ -14,7 +14,7 @@ fi
 
 CUR_DIR=$(readlink -f $(dirname "$0"))
 SRC_DIR="${CUR_DIR}/src"
-STACK='lnmp'
+STACK=''
 
 LXMP_Ver='1.0'
 . ${CUR_DIR}/include/main.sh
@@ -174,9 +174,10 @@ while :; do
 done
 
 if [[ -z "${STACK}" ]]; then
-    Echo_Red "lnmp or lamp parameter are required."
-    exit 1
-elif [[ "${STACK}" == "lnmp" ]]; then
+    STACK='lnmp'
+fi
+
+if [[ "${STACK}" == "lnmp" ]]; then
     LNMP_Stack 2>&1 | tee /root/openlxmp-install.log
 elif [[ "${STACK}" == "lamp" ]]; then
     LAMP_Stack 2>&1 | tee /root/openlxmp-install.log
