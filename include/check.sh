@@ -59,7 +59,7 @@ LNMP_Startup()
 {
     Enable_Startup nginx
     Enable_Startup mysql
-    Enable_startup php-fpm
+    Enable_Startup php-fpm
 }
 
 LAMP_Startup()
