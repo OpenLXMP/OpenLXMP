@@ -24,7 +24,7 @@ Install_phpMyAdmin()
         mv "${phpMyAdmin5_Ver}" "${Default_Website_Dir}/phpmyadmin"
     fi
 
-    mkdir "${Default_Website_Dir}/phpmyadmin/{upload,save}"
+    mkdir "${Default_Website_Dir}"/phpmyadmin/{upload,save}
     cp "${Default_Website_Dir}/phpmyadmin/config.sample.inc.php" "${Default_Website_Dir}/phpmyadmin/config.inc.php"
     sed -i "s@\$cfg\['blowfish_secret'\] = .*;@\$cfg\['blowfish_secret'\] = '$(tr -dc 'A-HJ-NP-Za-hj-km-np-z2-9' < /dev/urandom | head -c 32)';@" "${Default_Website_Dir}/phpmyadmin/config.inc.php"
     sed -i "s@\$cfg\['UploadDir'\] = .*;@\$cfg\['UploadDir'\] = 'upload';@" "${Default_Website_Dir}/phpmyadmin/config.inc.php"
