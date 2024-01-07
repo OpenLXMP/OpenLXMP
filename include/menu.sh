@@ -150,7 +150,7 @@ Main_Menu()
 
 Help_Menu()
 {
-    echo "Usage: $0 {lnmp|lamp} [OPTIONS]"
+    echo "Usage: $0 <--lnmp|--lamp> [OPTIONS]"
     echo "  -h, --help      Display this help menu"
     echo "  --lnmp          Install lnmp stack"
     echo "  --lamp          Install lamp stack"
@@ -159,4 +159,28 @@ Help_Menu()
     echo "  --php_bz2       Install PHP bz2 extension"
     echo "  --php_sodium    Install PHP Sodium extension"
     echo "  --php_imap      Install PHP imap extension"
+}
+
+Upgrade_Help_Menu()
+{
+    echo "Usage: $0 <nginx|php|mysql> [OPTIONS]"
+    echo "  -h, --help      Display this help menu"
+    echo "  nginx           Upgrade Nginx"
+    echo "  php             Upgrade PHP"
+    echo "  mysql           Upgrade MySQL"
+    echo "  --php_fileinfo  Upgrade PHP with fileinfo extension"
+    echo "  --php_ldap      Upgrade PHP with LDAP extension"
+    echo "  --php_bz2       Upgrade PHP with bz2 extension"
+    echo "  --php_sodium    Upgrade PHP with Sodium extension"
+    echo "  --php_imap      Upgrade PHP with imap extension"
+}
+
+Upgrade_Menu()
+{
+    echo "1. Upgrade Nginx"
+    echo "2. Upgrade Apache"
+    echo "3. Upgrade MySQL"
+    echo "4. Upgrade PHP"
+    echo "5. Upgrade PHPMyAdmin"
+    read -p "Please enter number: " upgrade_selected_num
 }

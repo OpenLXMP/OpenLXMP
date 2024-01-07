@@ -257,6 +257,18 @@ Do_Query()
     return $ret
 }
 
+Verify_MySQL_Password()
+{
+    status=1
+    while [ $status -eq 1 ]; do
+        read -s -p "Enter current root password of MySQL (Password not displayed): " DBRootPasswd
+        Make_TempMycnf "${DBRootPasswd}"
+        Do_Query ""
+        status=$?
+    done
+    echo "OK, MySQL root password correct."
+}
+
 Enable_Startup()
 {
     local service_name="$1"
@@ -274,5 +286,16 @@ Disable_Startup()
         Echo_Blue "Disable ${service_name} from starting on boot..."
         systemctl daemon-reload
         systemctl disable ${service_name}.service
+    fi
+}
+
+Check_Stack()
+{
+    if [[ -s /usr/local/php/sbin/php-fpm && -s /usr/local/nginx/sbin/nginx ]]; then
+        STACK='lnmp'
+    elif [[ -s /usr/local/apache/bin/httpd && -s /usr/local/apache/conf/httpd.conf ]]; then
+        STACK='lamp'
+    else
+        STACK='unknown'
     fi
 }

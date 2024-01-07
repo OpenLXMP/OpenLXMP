@@ -1,192 +1,73 @@
 #!/usr/bin/env bash
 
-PHP_With_Fileinfo()
+Upgrade_PHP()
 {
-    if [[ "${Enable_PHP_Fileinfo}" == "n" ]]; then
-        if [[ "${MemTotal}" -gt 950 ]]; then
-            with_fileinfo=''
-        else
-            with_fileinfo='--disable-fileinfo'
-        fi
+    Cur_PHP_Ver=$(/usr/local/php/bin/php -v | awk 'NR==1 {print $2}')
+    php_ver=''
+    PHP_Ver=''
+
+    Echo_Cyan "Current PHP Version: ${Cur_PHP_Ver}"
+    Echo_Cyan "Please get the PHP version number from https://www.php.net/downloads"
+    while [[ -z ${php_ver} ]]; do
+        read -p "Please enter PHP version, (example: 8.3.1): " php_ver
+    done
+    if [[ ${php_ver} =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        Echo_Cyan "The PHP version that you have entered: ${php_ver}"
     else
-        with_fileinfo=''
+        Echo_Red "Error: Invalid PHP version format."
+        exit 1
     fi
-}
 
-PHP_With_ICU()
-{
-    if pkg-config --modversion icu-i18n | grep -Eqi '^6[89]|7[0-9]'; then
-        export CXX="g++ -DTRUE=1 -DFALSE=0"
-        export  CC="gcc -DTRUE=1 -DFALSE=0"
+    if [[ ! $php_ver =~ ^(5\.6|7\.0|7\.1|7\.2|7\.3|7\.4|8\.0|8\.1|8\.2|8\.3) ]]; then
+        Echo_Red "Error: PHP ${php_ver} is not supported."
+        exit 1
     fi
-}
 
-PHP_ICU_Patch()
-{
-    if pkg-config --modversion icu-i18n | grep -Eqi '^[7-9][0-9]'; then
-        PHP_Short_Ver="$(echo ${PHP_Ver} | cut -d- -f2 | cut -d. -f1-2)"
-        echo "apply a icu 70+ patch to PHP ${PHP_Short_Ver}..."
-        patch -p1 < ${SRC_DIR}/patch/php-${PHP_Short_Ver}-icu70.patch
+    Press_Start
+    Print_Sys_Info
+    Echo_Blue "Backup PHP files before upgrading..."
+    cd ${SRC_DIR}
+    Check_Stack
+    Echo_Blue "Current Stack: ${STACK}"
+    mv /usr/local/php /usr/local/backup_php_${Upgrade_Date}
+    if [[ "${STACK}" != "lamp" ]]; then
+        /etc/init.d/php-fpm stop
     fi
-}
-
-PHP_OpenSSL3_Patch()
-{
-    if [[ "${isOpenSSL3}" = "y" ]]; then
-        PHP_Short_Ver="$(echo ${PHP_Ver} | cut -d- -f2 | cut -d. -f1-2)"
-        echo "Apply a OpenSSL 3.0 patch to PHP ${PHP_Short_Ver}..."
-        patch -p1 < ${SRC_DIR}/patch/php-${PHP_Short_Ver}-openssl3.0.patch
+    PHP_Ver="php-${php_ver}"
+    Download "https://www.php.net/distributions/${PHP_Ver}.tar.xz" "${PHP_Ver}.tar.xz"
+    if [ $? -ne 0 ]; then
+        Echo_Red "Unable to download ${PHP_Ver}.tar.xz from https://www.php.net/distributions/${PHP_Ver}.tar.xz"
+        Echo_Red "Please download the file manually and place it in the src directory."
+        exit 1
     fi
-}
-
-PHP_With_LDAP()
-{
-    if [[ "${Enable_PHP_LDAP}" == "y" ]]; then
-        if [[ "${PM}" = "yum" ]]; then
-            yum -y install openldap-devel cyrus-sasl-devel
-            if [[ "${ARCH}" == "x86_64" || "${ARCH}" == "aarch64" ]]; then
-                ln -sf /usr/lib64/libldap* /usr/lib/
-                ln -sf /usr/lib64/liblber* /usr/lib/
-            fi
-        elif [[ "${PM}" = "apt" ]]; then
-            apt-get install -y libldap2-dev libsasl2-dev
-            if [[ "${ARCH}" == "x86_64" || "${ARCH}" == "aarch64" ]]; then
-                ln -sf /usr/lib/${ARCH}-linux-gnu/libldap.so /usr/lib/
-                ln -sf /usr/lib/${ARCH}-linux-gnu/libldap_r.a /usr/lib/
-                ln -sf /usr/lib/${ARCH}-linux-gnu/liblber.so /usr/lib/
-            fi
+    PHP_Options
+    case "${php_ver}" in
+        5.6.*) Upgrade_PHP_56 ;;
+        7.0.*) Upgrade_PHP_70 ;;
+        7.1.*) Upgrade_PHP_71 ;;
+        7.2.*) Upgrade_PHP_72 ;;
+        7.3.*) Upgrade_PHP_73 ;;
+        7.4.*) Upgrade_PHP_74 ;;
+        8.0.*) Upgrade_PHP_80 ;;
+        8.1.*) Upgrade_PHP_81 ;;
+        8.2.*) Upgrade_PHP_82 ;;
+        8.3.*) Upgrade_PHP_83 ;;
+        *) Echo_Red "Error: PHP ${php_ver} is not supported."; exit 1 ;;
+    esac
+    if [[ -s /usr/local/php/etc/php.ini && -s /usr/local/php/bin/php ]]; then
+        if [[ "${STACK}" != "lamp" ]]; then
+            /etc/init.d/php-fpm start
         fi
-        with_ldap='--with-ldap --with-ldap-sasl'
+        Echo_Green "PHP has been successfully updated to the version: ${php_ver}."
     else
-        with_ldap=''
+        Echo_Red "PHP upgrade failed."
     fi
 }
 
-PHP_With_Bz2()
+Upgrade_PHP_56()
 {
-    if [[ "${Enable_PHP_Bz2}" == "y" ]]; then
-        Install_Libzip
-        with_bz2='--with-bz2'
-    else
-        with_bz2=''
-    fi
-}
-
-PHP_With_Sodium()
-{
-    if [[ "${Enable_PHP_Sodium}" == "y" ]]; then
-        if [[ "${PM}" = "yum" ]]; then
-            yum install epel-release -y
-            yum install libsodium-devel -y
-        elif [[ "${PM}" = "apt" ]]; then
-            apt-get install libsodium-dev -y
-        fi
-        if echo "${PHP_Ver}" | grep -Eqi "php-7.[2-4].*|php-8.*"; then
-            with_sodium='--with-sodium'
-        else
-            Echo_Red 'php 7.1 and below do not support the sodium extension, only support libsodium-php 3rd party extension.'
-            with_sodium=''
-        fi
-    fi
-}
-
-PHP_With_Imap()
-{
-    if [[ "${Enable_PHP_Imap}" == "y" ]]; then
-        if [[ "${PM}" = "yum" ]]; then
-            yum install epel-release -y
-            local packages
-            for packages in libc-client-devel krb5-devel uw-imap-devel;
-            do yum install ${packages} -y; done
-            if echo "${CentOS_Version}" | grep -Eqi "^9" || echo "${Alma_Version}" | grep -Eqi "^9" || echo "${Rocky_Version}" | grep -Eqi "^9"; then
-                rpm -ivh http://rpms.remirepo.net/enterprise/9/remi/${ARCH}/libc-client-2007f-30.el9.remi.${ARCH}.rpm
-                rpm -ivh http://rpms.remirepo.net/enterprise/9/remi/${ARCH}/uw-imap-devel-2007f-30.el9.remi.${ARCH}.rpm
-            fi
-            [[ -s /usr/lib64/libc-client.so ]] && ln -sf /usr/lib64/libc-client.so /usr/lib/libc-client.so
-        elif [[ "${PM}" = "apt" ]]; then
-            apt-get install libc-client-dev libkrb5-dev -y
-        fi
-        with_imap='--with-imap --with-imap-ssl --with-kerberos'
-    else
-        with_imap=''
-    fi
-}
-
-PHP_Options()
-{
-    PHP_With_Fileinfo
-    PHP_With_ICU
-    PHP_With_LDAP
-    PHP_With_Bz2
-    PHP_With_Sodium
-    php_with_n_a='--enable-fpm --with-fpm-user=www --with-fpm-group=www'
-    if [[ "${STACK}" == "lamp" ]]; then
-        php_with_n_a='--with-apxs2=/usr/local/apache/bin/apxs'
-        sed -i "s|#!/replace/with/path/to/perl/interpreter -w|#!$(which perl) -w|g" /usr/local/apache/bin/apxs
-    fi
-    php_with_options="${with_fileinfo} ${with_ldap} ${with_bz2} ${with_sodium} ${PHP_Modules_Options}"
-}
-
-Create_PHPFPM_Conf()
-{
-    cat >/usr/local/php/etc/php-fpm.conf<<EOF
-[global]
-pid = /usr/local/php/var/run/php-fpm.pid
-error_log = /usr/local/php/var/log/php-fpm.log
-log_level = notice
-
-[www]
-listen = /tmp/php-cgi.sock
-listen.backlog = -1
-listen.allowed_clients = 127.0.0.1
-listen.owner = www
-listen.group = www
-listen.mode = 0666
-user = www
-group = www
-pm = dynamic
-pm.max_children = 10
-pm.start_servers = 2
-pm.min_spare_servers = 1
-pm.max_spare_servers = 6
-pm.max_requests = 1024
-pm.process_idle_timeout = 10s
-request_terminate_timeout = 100
-request_slowlog_timeout = 0
-slowlog = var/log/slow.log
-EOF
-    \cp ${SRC_DIR}/${PHP_Ver}/sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
-    \cp ${CUR_DIR}/init.d/php-fpm.service /etc/systemd/system/php-fpm.service
-    chmod +x /etc/init.d/php-fpm
-}
-
-Set_PHP()
-{
-    Echo_Blue "Adjusting php.ini configuration file..."
-    sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
-    sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
-    sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
-    sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
-    sed -i 's/disable_functions =.*/disable_functions = passthru,exec,system,chroot,chgrp,chown,shell_exec,proc_open,proc_get_status,popen,ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,stream_socket_server/g' /usr/local/php/etc/php.ini
-
-    Echo_Blue "Create PHP symbolic link..."
-    ln -sf /usr/local/php/bin/php /usr/bin/php
-    ln -sf /usr/local/php/bin/phpize /usr/bin/phpize
-    ln -sf /usr/local/php/bin/pear /usr/bin/pear
-    ln -sf /usr/local/php/bin/pecl /usr/bin/pecl
-
-    Echo_Blue "Configure pear & pecl..."
-    pear config-set php_ini /usr/local/php/etc/php.ini
-    pecl config-set php_ini /usr/local/php/etc/php.ini
-}
-
-Install_PHP_56()
-{
-    Echo_Blue "Installing ${PHP56_Ver}..."
-    Download "${PHP56_URL}"
-    Tar_Cd ${PHP56_Ver}.tar.xz ${PHP56_Ver}
+    Echo_Blue "Upgrading ${PHP_Ver}..."
+    Tar_Cd ${PHP_Ver}.tar.xz ${PHP_Ver}
     if [[ "${ARCH}" = "aarch64" ]]; then
         patch -p1 < ${SRC_DIR}/patch/php-5.6-asm-aarch64.patch
     fi
@@ -222,18 +103,17 @@ Install_PHP_56()
     mkdir -p /usr/local/php/{etc,conf.d}
     \cp php.ini-production /usr/local/php/etc/php.ini
 
-    if [[ "${STACK}" == "lnmp" ]]; then
+    if [[ "${STACK}" != "lamp" ]]; then
         Create_PHPFPM_Conf
     fi
 
     Set_PHP
 }
 
-Install_PHP_70()
+Upgrade_PHP_70()
 {
-    Echo_Blue "Installing ${PHP70_Ver}..."
-    Download "${PHP70_URL}"
-    Tar_Cd ${PHP70_Ver}.tar.xz ${PHP70_Ver}
+    Echo_Blue "Upgrading ${PHP_Ver}..."
+    Tar_Cd ${PHP_Ver}.tar.xz ${PHP_Ver}
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \
@@ -262,18 +142,17 @@ Install_PHP_70()
     mkdir -p /usr/local/php/{etc,conf.d}
     \cp php.ini-production /usr/local/php/etc/php.ini
 
-    if [[ "${STACK}" == "lnmp" ]]; then
+    if [[ "${STACK}" != "lamp" ]]; then
         Create_PHPFPM_Conf
     fi
 
     Set_PHP
 }
 
-Install_PHP_71()
+Upgrade_PHP_71()
 {
-    Echo_Blue "Installing ${PHP71_Ver}..."
-    Download "${PHP71_URL}"
-    Tar_Cd ${PHP71_Ver}.tar.xz ${PHP71_Ver}
+    Echo_Blue "Upgrading ${PHP_Ver}..."
+    Tar_Cd ${PHP_Ver}.tar.xz ${PHP_Ver}
     PHP_ICU_Patch
     PHP_OpenSSL3_Patch
     ./configure --prefix=/usr/local/php \
@@ -307,18 +186,17 @@ Install_PHP_71()
     mkdir -p /usr/local/php/{etc,conf.d}
     \cp php.ini-production /usr/local/php/etc/php.ini
 
-    if [[ "${STACK}" == "lnmp" ]]; then
+    if [[ "${STACK}" != "lamp" ]]; then
         Create_PHPFPM_Conf
     fi
 
     Set_PHP
 }
 
-Install_PHP_72()
+Upgrade_PHP_72()
 {
-    Echo_Blue "Installing ${PHP72_Ver}..."
-    Download "${PHP72_URL}"
-    Tar_Cd ${PHP72_Ver}.tar.xz ${PHP72_Ver}
+    Echo_Blue "Upgrading ${PHP_Ver}..."
+    Tar_Cd ${PHP_Ver}.tar.xz ${PHP_Ver}
     PHP_ICU_Patch
     PHP_OpenSSL3_Patch
     ./configure --prefix=/usr/local/php \
@@ -351,18 +229,17 @@ Install_PHP_72()
     mkdir -p /usr/local/php/{etc,conf.d}
     \cp php.ini-production /usr/local/php/etc/php.ini
 
-    if [[ "${STACK}" == "lnmp" ]]; then
+    if [[ "${STACK}" != "lamp" ]]; then
         Create_PHPFPM_Conf
     fi
 
     Set_PHP
 }
 
-Install_PHP_73()
+Upgrade_PHP_73()
 {
-    Echo_Blue "Installing ${PHP73_Ver}..."
-    Download "${PHP73_URL}"
-    Tar_Cd ${PHP73_Ver}.tar.xz ${PHP73_Ver}
+    Echo_Blue "Upgrading ${PHP_Ver}..."
+    Tar_Cd ${PHP_Ver}.tar.xz ${PHP_Ver}
     PHP_ICU_Patch
     PHP_OpenSSL3_Patch
     ./configure --prefix=/usr/local/php \
@@ -397,19 +274,18 @@ Install_PHP_73()
     mkdir -p /usr/local/php/{etc,conf.d}
     \cp php.ini-production /usr/local/php/etc/php.ini
 
-    if [[ "${STACK}" == "lnmp" ]]; then
+    if [[ "${STACK}" != "lamp" ]]; then
         Create_PHPFPM_Conf
     fi
 
     Set_PHP
 }
 
-Install_PHP_74()
+Upgrade_PHP_74()
 {
-    Echo_Blue "Installing ${PHP74_Ver}..."
+    Echo_Blue "Upgrading ${PHP_Ver}..."
     Install_Libzip
-    Download "${PHP74_URL}"
-    Tar_Cd ${PHP74_Ver}.tar.xz ${PHP74_Ver}
+    Tar_Cd ${PHP_Ver}.tar.xz ${PHP_Ver}
     PHP_OpenSSL3_Patch
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
@@ -440,25 +316,18 @@ Install_PHP_74()
     mkdir -p /usr/local/php/{etc,conf.d}
     \cp php.ini-production /usr/local/php/etc/php.ini
 
-    if [[ "${STACK}" == "lnmp" ]]; then
+    if [[ "${STACK}" != "lamp" ]]; then
         Create_PHPFPM_Conf
     fi
 
-    sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
-    sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
-    sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
-    sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
-    sed -i 's/disable_functions =.*/disable_functions = passthru,exec,system,chroot,chgrp,chown,shell_exec,proc_open,proc_get_status,popen,ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,stream_socket_server/g' /usr/local/php/etc/php.ini
+    Set_PHP
 }
 
-Install_PHP_80()
+Upgrade_PHP_80()
 {
-    Echo_Blue "Installing ${PHP80_Ver}..."
+    Echo_Blue "Upgrading ${PHP_Ver}..."
     Install_Libzip
-    Download "${PHP80_URL}"
-    Tar_Cd ${PHP80_Ver}.tar.xz ${PHP80_Ver}
+    Tar_Cd ${PHP_Ver}.tar.xz ${PHP_Ver}
     PHP_OpenSSL3_Patch
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
@@ -490,19 +359,18 @@ Install_PHP_80()
     mkdir -p /usr/local/php/{etc,conf.d}
     \cp php.ini-production /usr/local/php/etc/php.ini
 
-    if [[ "${STACK}" == "lnmp" ]]; then
+    if [[ "${STACK}" != "lamp" ]]; then
         Create_PHPFPM_Conf
     fi
 
     Set_PHP
 }
 
-Install_PHP_81()
+Upgrade_PHP_81()
 {
-    Echo_Blue "Installing ${PHP81_Ver}..."
+    Echo_Blue "Upgrading ${PHP_Ver}..."
     Install_Libzip
-    Download "${PHP81_URL}"
-    Tar_Cd ${PHP81_Ver}.tar.xz ${PHP81_Ver}
+    Tar_Cd ${PHP_Ver}.tar.xz ${PHP_Ver}
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \
@@ -533,19 +401,18 @@ Install_PHP_81()
     mkdir -p /usr/local/php/{etc,conf.d}
     \cp php.ini-production /usr/local/php/etc/php.ini
 
-    if [[ "${STACK}" == "lnmp" ]]; then
+    if [[ "${STACK}" != "lamp" ]]; then
         Create_PHPFPM_Conf
     fi
 
     Set_PHP
 }
 
-Install_PHP_82()
+Upgrade_PHP_82()
 {
-    Echo_Blue "Installing ${PHP82_Ver}..."
+    Echo_Blue "Upgrading ${PHP_Ver}..."
     Install_Libzip
-    Download "${PHP82_URL}"
-    Tar_Cd ${PHP82_Ver}.tar.xz ${PHP82_Ver}
+    Tar_Cd ${PHP_Ver}.tar.xz ${PHP_Ver}
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \
@@ -576,19 +443,18 @@ Install_PHP_82()
     mkdir -p /usr/local/php/{etc,conf.d}
     \cp php.ini-production /usr/local/php/etc/php.ini
 
-    if [[ "${STACK}" == "lnmp" ]]; then
+    if [[ "${STACK}" != "lamp" ]]; then
         Create_PHPFPM_Conf
     fi
 
     Set_PHP
 }
 
-Install_PHP_83()
+Upgrade_PHP_83()
 {
-    Echo_Blue "Installing ${PHP83_Ver}..."
+    Echo_Blue "Upgrading ${PHP_Ver}..."
     Install_Libzip
-    Download "${PHP83_URL}"
-    Tar_Cd ${PHP83_Ver}.tar.xz ${PHP83_Ver}
+    Tar_Cd ${PHP_Ver}.tar.xz ${PHP_Ver}
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \
@@ -619,7 +485,7 @@ Install_PHP_83()
     mkdir -p /usr/local/php/{etc,conf.d}
     \cp php.ini-production /usr/local/php/etc/php.ini
 
-    if [[ "${STACK}" == "lnmp" ]]; then
+    if [[ "${STACK}" != "lamp" ]]; then
         Create_PHPFPM_Conf
     fi
 
