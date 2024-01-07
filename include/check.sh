@@ -60,12 +60,17 @@ LNMP_Startup()
     Enable_Startup nginx
     Enable_Startup mysql
     Enable_Startup php-fpm
+    systemctl start nginx
+    systemctl start mysql
+    systemctl start php-fpm
 }
 
 LAMP_Startup()
 {
     Enable_Startup httpd
     Enable_Startup mysql
+    systectl start httpd
+    systectl start mysql
 }
 
 Sucess_Msg()
