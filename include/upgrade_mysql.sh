@@ -3,7 +3,7 @@
 Backup_MySQL()
 {
     Echo_Blue "Backup MySQL Databases..."
-    /usr/local/mysql/bin/mysqldump --defaults-file=~/.my.cnf --add-drop-table --routines --events --all-databases > /root/mysql_all_backup${Upgrade_Date}.sql
+    /usr/local/mysql/bin/mysqldump --defaults-file=~/.my.cnf --add-drop-table --all-databases > /root/mysql_all_backup${Upgrade_Date}.sql
     if [[ $? -ne 0 ]]; then
         Echo_Blue "MySQL databases has been successfully backup to /root/mysql_all_backup${Upgrade_Date}.sql"
     else
@@ -716,7 +716,6 @@ EOF
             Do_Query "ALTER USER 'root'@'localhost' IDENTIFIED BY '${DBRootPasswd}';"
             [ $? -eq 0 ] && echo "MySQL root password set Sucessfully." || echo "Failed to set MySQL root password!"
         fi
-        rm -f ~/.emptymy.cnf
     fi
 
     ln -sf /usr/local/mysql/bin/mysql /usr/bin/mysql
@@ -725,7 +724,25 @@ EOF
     ln -sf /usr/local/mysql/bin/mysqld_safe /usr/bin/mysqld_safe
     ln -sf /usr/local/mysql/bin/mysqlcheck /usr/bin/mysqlcheck
 
-    /etc/init.d/mysql restart
-    /etc/init.d/mysql stop
+    Echo_Blue "Restore backup databases from SQL file..."
+    /usr/local/mysql/bin/mysql --defaults-file=~/.my.cnf < /root/mysql_all_backup${Upgrade_Date}.sql
+
+    Echo_Blue "Upgrading databases..."
+    if [[ "${mysql_ver}" == "8.0.16" || "${mysql_ver}" > "8.0.16" ]]; then
+        /etc/init.d/mysql stop
+        /usr/local/mysql/bin/mysqld --user=mysql --upgrade=FORCE &
+        sleep 300
+        /usr/local/mysql/bin/mysqladmin --defaults-file=~/.my.cnf shutdown
+    else
+        /usr/local/mysql/bin/mysql_upgrade -u root -p${DBRootPasswd}
+    fi
+
     cd ${SRC_DIR}
+    Del_Mycnf
+    if [[ -s /usr/local/mysql/bin/mysql ]]; then
+        /etc/init.d/mysql restart
+        Echo_Green "MySQL has been successfully upgraded to the version: ${mysql_ver}."
+    else
+        Echo_Red "MySQL upgrade failed."
+    fi
 }

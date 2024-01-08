@@ -257,6 +257,11 @@ Do_Query()
     return $ret
 }
 
+Del_Mycnf()
+{
+    rm -f ~/.my.cnf
+}
+
 Verify_MySQL_Password()
 {
     status=1
