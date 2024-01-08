@@ -180,6 +180,14 @@ Set_PHP()
     Echo_Blue "Configure pear & pecl..."
     pear config-set php_ini /usr/local/php/etc/php.ini
     pecl config-set php_ini /usr/local/php/etc/php.ini
+
+    Echo_Blue "Installing Composer..."
+    if [[ ${PHP_Ver} =~ ^php-(5\.6|7\.0|7\.1) ]]; then
+        Download "${Composer22_URL}" "/usr/local/bin/composer"
+    else
+        Download "${Composer_URL}" "/usr/local/bin/composer"
+    fi
+    chmod +x /usr/local/bin/composer
 }
 
 Install_PHP_56()
@@ -444,13 +452,7 @@ Install_PHP_74()
         Create_PHPFPM_Conf
     fi
 
-    sed -i 's/post_max_size =.*/post_max_size = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/upload_max_filesize =.*/upload_max_filesize = 50M/g' /usr/local/php/etc/php.ini
-    sed -i 's/;date.timezone =.*/date.timezone = PRC/g' /usr/local/php/etc/php.ini
-    sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
-    sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
-    sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
-    sed -i 's/disable_functions =.*/disable_functions = passthru,exec,system,chroot,chgrp,chown,shell_exec,proc_open,proc_get_status,popen,ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,stream_socket_server/g' /usr/local/php/etc/php.ini
+    Set_PHP
 }
 
 Install_PHP_80()
