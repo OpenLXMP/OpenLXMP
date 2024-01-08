@@ -53,7 +53,7 @@ Upgrade_Nginx()
     rm -rf ${Nginx_Ver}
 
     if [[ -s /usr/local/nginx/sbin/nginx ]]; then
-        Echo_Green "Nginx has been successfully updated to the version: ${Nginx_Ver}."
+        Echo_Green "Nginx has been successfully upgraded to the version: ${Nginx_Ver}."
     else
         Echo_Red "Nginx upgrade failed."
     fi

@@ -58,7 +58,7 @@ Upgrade_PHP()
         if [[ "${STACK}" != "lamp" ]]; then
             /etc/init.d/php-fpm start
         fi
-        Echo_Green "PHP has been successfully updated to the version: ${php_ver}."
+        Echo_Green "PHP has been successfully upgraded to the version: ${php_ver}."
     else
         Echo_Red "PHP upgrade failed."
     fi

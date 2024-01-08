@@ -33,5 +33,5 @@ Upgrade_phpMyAdmin()
     sed -i "s@\$cfg\['SaveDir'\] = .*;@\$cfg\['SaveDir'\] = 'save';@" "${Default_Website_Dir}/phpmyadmin/config.inc.php"
     chown www:www -R "${Default_Website_Dir}/phpmyadmin"
 
-    Echo_Green "phpMyAdmin has been successfully updated to the version: ${phpmyadmin_ver}."
+    Echo_Green "phpMyAdmin has been successfully upgraded to the version: ${phpmyadmin_ver}."
 }
