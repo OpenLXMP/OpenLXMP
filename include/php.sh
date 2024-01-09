@@ -234,6 +234,22 @@ Install_PHP_56()
         Create_PHPFPM_Conf
     fi
 
+    if [[ -s /usr/local/php/bin/php-config ]]; then
+        Echo_Blue "Installing ZendGuardLoader..."
+        cd ${SRC_DIR}
+        Download http://downloads.zend.com/guard/7.0.0/zend-loader-php5.6-linux-${ARCH}_update1.tar.gz
+        Tar_Cd zend-loader-php5.6-linux-${ARCH}_update1.tar.gz
+        mv zend-loader-php5.6-linux-x86_64 /usr/local/zend
+        cat >/usr/local/php/conf.d/001-zendguardloader.ini<<EOF
+[Zend ZendGuard Loader]
+zend_extension = /usr/local/zend/ZendGuardLoader.so
+zend_loader.enable = 1
+zend_loader.disable_licensing = 0
+zend_loader.obfuscation_level_support = 3
+zend_loader.license_path =
+EOF
+    fi
+
     Set_PHP
 }
 
