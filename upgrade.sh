@@ -91,7 +91,6 @@ case $upgrade_selected in
         Upgrade_Nginx 2>&1 | tee /root/openlxmp-upgrade-nginx-${Upgrade_Date}.log
         ;;
     apache)
-        echo "Upgrading Apache"
         Upgrade_Apache 2>&1 | tee /root/openlxmp-upgrade-apache-${Upgrade_Date}.log
         ;;
     php)
