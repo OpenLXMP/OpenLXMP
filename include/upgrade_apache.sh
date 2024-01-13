@@ -77,7 +77,7 @@ Upgrade_Apache()
 
     if [[ -s /usr/local/apache/bin/httpd ]]; then
         systemctl start httpd
-        Echo_Green "Apache has been successfully updated to the version: ${apache_ver}."
+        Echo_Green "Apache has been successfully upgraded to the version: ${apache_ver}."
     else
         Echo_Red "Apache upgrade failed."
     fi
