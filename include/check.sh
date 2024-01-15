@@ -58,7 +58,9 @@ Check_Apache()
 LNMP_Startup()
 {
     Enable_Startup nginx
-    Enable_Startup mysql
+    if [[ "${DBSelect}" != "0" ]]; then
+        Enable_Startup mysql
+    fi
     Enable_Startup php-fpm
     systemctl start nginx
     systemctl start mysql
@@ -68,7 +70,9 @@ LNMP_Startup()
 LAMP_Startup()
 {
     Enable_Startup httpd
-    Enable_Startup mysql
+    if [[ "${DBSelect}" != "0" ]]; then
+        Enable_Startup mysql
+    fi
     systectl start httpd
     systectl start mysql
 }
