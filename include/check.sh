@@ -60,10 +60,10 @@ LNMP_Startup()
     Enable_Startup nginx
     if [[ "${DBSelect}" != "0" ]]; then
         Enable_Startup mysql
+        systemctl start mysql
     fi
     Enable_Startup php-fpm
     systemctl start nginx
-    systemctl start mysql
     systemctl start php-fpm
 }
 
@@ -72,9 +72,9 @@ LAMP_Startup()
     Enable_Startup httpd
     if [[ "${DBSelect}" != "0" ]]; then
         Enable_Startup mysql
+        systectl start mysql
     fi
     systectl start httpd
-    systectl start mysql
 }
 
 Sucess_Msg()
