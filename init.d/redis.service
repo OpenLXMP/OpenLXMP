@@ -1,0 +1,14 @@
+[Unit]
+Description=Redis data structure server
+Documentation=https://redis.io/documentation
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/usr/local/redis/bin/redis-server /usr/local/redis/etc/redis.conf
+ExecStop=/usr/local/redis/bin/redis-cli shutdown
+PrivateTmp=false
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

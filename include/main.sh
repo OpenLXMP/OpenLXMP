@@ -304,3 +304,14 @@ Check_Stack()
         STACK='unknown'
     fi
 }
+
+Get_Ext_Dir()
+{
+    if [[ -s /usr/local/php/bin/php-config ]]; then
+        php_ext_dir=$(/usr/local/php/bin/php-config --extension-dir)
+        cur_php_ver=$(/usr/local/php/bin/php-config --version)
+    else
+        echo "php-config not found."
+        exit 1
+    fi
+}

@@ -72,9 +72,9 @@ LAMP_Startup()
     Enable_Startup httpd
     if [[ "${DBSelect}" != "0" ]]; then
         Enable_Startup mysql
-        systectl start mysql
+        systemctl start mysql
     fi
-    systectl start httpd
+    systemctl start httpd
 }
 
 Sucess_Msg()

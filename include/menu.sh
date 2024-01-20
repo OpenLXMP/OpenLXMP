@@ -184,3 +184,30 @@ Upgrade_Menu()
     echo "5. Upgrade PHPMyAdmin"
     read -p "Please enter number: " upgrade_selected_num
 }
+
+Addons_Help_Menu()
+{
+    echo "Usage: $0 [OPTIONS]"
+    echo "  -h, --help      Display this help menu"
+    echo "  --redis         Install Redis"
+    echo "  --memcached     Install Memcached"
+    echo "  --opcache       Install opcache"
+    echo "  --php_fileinfo  Install PHP with fileinfo extension"
+    echo "  --php_ldap      Install PHP with LDAP extension"
+    echo "  --php_bz2       Install PHP with bz2 extension"
+    echo "  --php_sodium    Install PHP with Sodium extension"
+    echo "  --php_imap      Install PHP with imap extension"
+}
+
+Addons_Menu()
+{
+    echo "1. Install Redis"
+    echo "2. Install Memcached"
+    echo "3. Install opcache"
+    echo "4. Install PHP with fileinfo extension"
+    echo "5. Install PHP with LDAP extension"
+    echo "6. Install PHP with bz2 extension"
+    echo "7. Install PHP with Sodium extension"
+    echo "8. Install PHP with imap extension"
+    read -p "Please enter number: " addons_select_num
+}
