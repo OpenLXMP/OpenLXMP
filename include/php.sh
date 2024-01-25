@@ -136,7 +136,7 @@ error_log = /usr/local/php/var/log/php-fpm.log
 log_level = notice
 
 [www]
-listen = /tmp/php-cgi.sock
+listen = /tmp/php-fpm.sock
 listen.backlog = -1
 listen.allowed_clients = 127.0.0.1
 listen.owner = www
