@@ -25,6 +25,7 @@ Install_Nginx()
 
     \cp ${CUR_DIR}/conf/nginx.conf /usr/local/nginx/conf/nginx.conf
     \cp ${CUR_DIR}/conf/enable-php.conf /usr/local/nginx/conf/enable-php.conf
+    \cp ${CUR_DIR}/conf/enable-php-pathinfo.conf /usr/local/nginx/conf/enable-php-pathinfo.conf
 
     id -g www &>/dev/null || groupadd www
     id -u www &>/dev/null || useradd -r -M -s /sbin/nologin -g www www
