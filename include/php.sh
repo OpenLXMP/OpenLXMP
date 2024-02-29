@@ -169,7 +169,7 @@ Set_PHP()
     sed -i 's/short_open_tag =.*/short_open_tag = On/g' /usr/local/php/etc/php.ini
     sed -i 's/;cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/g' /usr/local/php/etc/php.ini
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
-    sed -i 's/disable_functions =.*/disable_functions = passthru,exec,system,chroot,chgrp,chown,shell_exec,proc_get_status,popen,ini_alter,ini_restore,dl,openlog,syslog,readlink,symlink,popepassthru,stream_socket_server/g' /usr/local/php/etc/php.ini
+    sed -i 's/disable_functions =.*/disable_functions = passthru,exec,system,chroot,chgrp,chown,shell_exec,proc_get_status,popen,ini_alter,ini_restore,dl,readlink,symlink,popepassthru,stream_socket_server/g' /usr/local/php/etc/php.ini
 
     Echo_Blue "Create PHP symbolic link..."
     ln -sf /usr/local/php/bin/php /usr/bin/php
