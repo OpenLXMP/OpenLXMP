@@ -394,6 +394,12 @@ Debian_Lib_Opt()
         ln -sf /usr/include/aarch64-linux-gnu/curl /usr/include/
     fi
 
+    if echo "${Ubuntu_VERSION}" | grep -Eqi "^24."; then
+        ln -sf /usr/lib/${ARCH}-linux-gnu/libaio.so.1t64 /usr/lib/${ARCH}-linux-gnu/libaio.so.1
+        ln -sf /usr/lib/${ARCH}-linux-gnu/libncurses.so.6 /usr/lib/${ARCH}-linux-gnu/libncurses.so.5
+        ln -sf /usr/lib/${ARCH}-linux-gnu/libtinfo.so.6 /usr/lib/${ARCH}-linux-gnu/libtinfo.so.5
+    fi
+
     ldconfig
 
     cat >>/etc/security/limits.conf<<eof
