@@ -154,6 +154,8 @@ Help_Menu()
     echo "  -h, --help      Display this help menu"
     echo "  --lnmp          Install lnmp stack"
     echo "  --lamp          Install lamp stack"
+    echo "  --nginx         Install only Nginx."
+    echo "  --mysql         Install only MySQL."
     echo "  --php_fileinfo  Install PHP fileinfo extension"
     echo "  --php_ldap      Install PHP LDAP extension"
     echo "  --php_bz2       Install PHP bz2 extension"

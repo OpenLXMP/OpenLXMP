@@ -30,6 +30,7 @@ Get_Distro_Info
 . ${CUR_DIR}/include/apache.sh
 . ${CUR_DIR}/include/web.sh
 . ${CUR_DIR}/include/check.sh
+. ${CUR_DIR}/include/only.sh
 
 clear
 printf "
@@ -128,22 +129,44 @@ LAMP_Stack()
 }
 
 
-while :; do
-    [ -z "$1" ] && break
-    case $1 in
+action=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
         --lnmp)
-            if [[ "${STACK}" == "lamp" ]]; then
-                echo "Error: --lnmp and --lamp are mutually exclusive."
+            if [[ -z $action ]]; then
+                action="lnmp"
+            else
+                echo "Only one of --lnmp, --lamp, --nginx, or --mysql can be specified."
+                Help_Menu
                 exit 1
             fi
-            STACK='lnmp'
             ;;
         --lamp)
-            if [[ "${STACK}" == "lnmp" ]]; then
-                echo "Error: --lnmp and --lamp are mutually exclusive."
+            if [[ -z $action ]]; then
+                action="lamp"
+            else
+                echo "Only one of --lnmp, --lamp, --nginx, or --mysql can be specified."
+                Help_Menu
                 exit 1
             fi
-            STACK='lamp'
+            ;;
+        --nginx)
+            if [[ -z $action ]]; then
+                action="nginx"
+            else
+                echo "Only one of --lnmp, --lamp, --nginx, or --mysql can be specified."
+                Help_Menu
+                exit 1
+            fi
+            ;;
+        --mysql)
+            if [[ -z $action ]]; then
+                action="mysql"
+            else
+                echo "Only one of --lnmp, --lamp, --nginx, or --mysql can be specified."
+                Help_Menu
+                exit 1
+            fi
             ;;
         --php_fileinfo)
             Enable_PHP_Fileinfo='y'
@@ -165,7 +188,7 @@ while :; do
             exit 0
             ;;
         *)
-            Echo_Red "Invalid option: $1"
+            echo "Invalid option: $1"
             Help_Menu
             exit 1
             ;;
@@ -173,12 +196,28 @@ while :; do
     shift
 done
 
-if [[ -z "${STACK}" ]]; then
-    STACK='lnmp'
+if [[ -z $action ]]; then
+    action="lnmp"
 fi
 
-if [[ "${STACK}" == "lnmp" ]]; then
-    LNMP_Stack 2>&1 | tee /root/openlxmp-install.log
-elif [[ "${STACK}" == "lamp" ]]; then
-    LAMP_Stack 2>&1 | tee /root/openlxmp-install.log
-fi
+case "$action" in
+    lnmp)
+        STACK='lnmp'
+        LNMP_Stack 2>&1 | tee /root/openlxmp-install.log
+        ;;
+    lamp)
+        STACK='lamp'
+        LAMP_Stack 2>&1 | tee /root/openlxmp-install.log
+        ;;
+    nginx)
+        Only_Install_Nginx 2>&1 | tee /root/openlxmp-nginx-install.log
+        ;;
+    mysql)
+        Only_Install_MySQL 2>&1 | tee /root/openlxmp-mysql-install.log
+        ;;
+    *)
+        echo "Unknown action: $action"
+        Help_Menu
+        exit 1
+        ;;
+esac

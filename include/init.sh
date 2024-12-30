@@ -141,9 +141,9 @@ Apt_Install_Dependency()
     export DEBIAN_FRONTEND=noninteractive
     apt-get update -y
     [[ $? -ne 0 ]] && apt-get update --allow-releaseinfo-change -y
-    local YUM_INSTALL_PKGS='debian-keyring debian-archive-keyring build-essential gcc g++ make cmake autoconf automake re2c wget cron bzip2 libzip-dev libc6-dev bison file flex bison m4 gawk less cpp binutils diffutils unzip tar bzip2 libbz2-dev xz-utils gzip lsof pkg-config ca-certificates libc-client2007e-dev psmisc patch git libc-ares-dev libncurses5 libncurses5-dev libtool libevent-dev openssl libssl-dev zlibc libsasl2-dev libltdl3-dev libltdl-dev zlib1g zlib1g-dev libbz2-1.0 libbz2-dev libglib2.0-0 libglib2.0-dev libpng3 libjpeg-dev libpng-dev libpng12-0 libpng12-dev libkrb5-dev curl libcurl3-gnutls libcurl4-gnutls-dev libpcre3-dev libpq-dev libpq5 gettext libpng12-dev libxml2-dev libcap-dev libicu-dev e2fsprogs libxslt1.1 libxslt1-dev libc-client-dev libexpat1-dev libaio-dev libtirpc-dev libsqlite3-dev libonig-devlibtinfo-dev libnuma-dev libwebp-dev gnutls-dev iproute2 libfreetype-dev libfreetype6-dev libonig-dev libudev-dev'
+    local APT_INSTALL_PKGS='debian-keyring debian-archive-keyring build-essential gcc g++ make cmake autoconf automake re2c wget cron bzip2 libzip-dev libc6-dev bison file flex bison m4 gawk less cpp binutils diffutils unzip tar bzip2 libbz2-dev xz-utils gzip lsof pkg-config ca-certificates libc-client2007e-dev psmisc patch git libc-ares-dev libncurses5 libncurses5-dev libtool libevent-dev openssl libssl-dev zlibc libsasl2-dev libltdl3-dev libltdl-dev zlib1g zlib1g-dev libbz2-1.0 libbz2-dev libglib2.0-0 libglib2.0-dev libpng3 libjpeg-dev libpng-dev libpng12-0 libpng12-dev libkrb5-dev curl libcurl3-gnutls libcurl4-gnutls-dev libpcre3-dev libpq-dev libpq5 gettext libpng12-dev libxml2-dev libcap-dev libicu-dev e2fsprogs libxslt1.1 libxslt1-dev libc-client-dev libexpat1-dev libaio-dev libtirpc-dev libsqlite3-dev libonig-devlibtinfo-dev libnuma-dev libwebp-dev gnutls-dev iproute2 libfreetype-dev libfreetype6-dev libonig-dev libudev-dev'
     local packages
-    for packages in ${YUM_INSTALL_PKGS}
+    for packages in ${APT_INSTALL_PKGS}
         do apt-get --no-install-recommends install $packages -y
     done
 }
