@@ -137,6 +137,8 @@ Only_Install_Nginx()
     Install_Nginx
     Check_Nginx
     if [[ "${Nginx_Install_Status}" == "y" ]]; then
+        Enable_Startup nginx
+        systemctl start nginx
         Echo_Green "Nginx has been successfully installed."
     else
         Echo_Red "Nginx install log: /root/openlxmp-nginx-install.log"
@@ -164,6 +166,8 @@ Only_Install_MySQL()
     esac
     Check_MySQL
     if [[ "${MySQL_Install_Status}" == "y" ]]; then
+        Enable_Startup mysql
+        systemctl start mysql
         Echo_Green "MySQL has been successfully installed."
     else
         Echo_Red "MySQL install log: /root/openlxmp-mysql-install.log"
