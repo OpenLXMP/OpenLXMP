@@ -120,6 +120,7 @@ PHP_Select_Menu()
     echo " 8.  PHP 8.1"
     echo " 9.  PHP 8.2"
     echo " 10. PHP 8.3"
+    echo " 11. PHP 8.4"
     echo "================================"
     read -p "Please enter: " PHPSelect
     case "${PHPSelect}" in
@@ -133,7 +134,8 @@ PHP_Select_Menu()
         8) Echo_Blue "Install PHP 8.1"; PHP_Ver=${PHP81_Ver} ;;
         9) Echo_Blue "Install PHP 8.2"; PHP_Ver=${PHP82_Ver} ;;
         10) Echo_Blue "Install PHP 8.3"; PHP_Ver=${PHP83_Ver} ;;
-        *) Echo_Blue "Invalid input, defaulting to PHP 7.4"; PHP_Ver=${PHP74_Ver}; PHPSelect='6' ;;
+        11) Echo_Blue "Install PHP 8.4"; PHP_Ver=${PHP84_Ver} ;;
+        *) Echo_Blue "Invalid input, default set to PHP 7.4"; PHP_Ver=${PHP74_Ver}; PHPSelect='6' ;;
     esac
 }
 

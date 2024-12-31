@@ -93,6 +93,7 @@ LNMP_Stack()
         8) Install_PHP_81 ;;
         9) Install_PHP_82 ;;
         10) Install_PHP_83 ;;
+        11) Install_PHP_84 ;;
     esac
     Install_Default_Web
     LNMP_Check
@@ -123,6 +124,7 @@ LAMP_Stack()
         8) Install_PHP_81 ;;
         9) Install_PHP_82 ;;
         10) Install_PHP_83 ;;
+        11) Install_PHP_84 ;;
     esac
     Install_Default_Web
     LAMP_Check

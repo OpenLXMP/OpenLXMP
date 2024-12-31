@@ -18,7 +18,7 @@ Upgrade_PHP()
         exit 1
     fi
 
-    if [[ ! $php_ver =~ ^(5\.6|7\.0|7\.1|7\.2|7\.3|7\.4|8\.0|8\.1|8\.2|8\.3) ]]; then
+    if [[ ! $php_ver =~ ^(5\.6|7\.0|7\.1|7\.2|7\.3|7\.4|8\.0|8\.1|8\.2|8\.3|8\.4) ]]; then
         Echo_Red "Error: PHP ${php_ver} is not supported."
         exit 1
     fi
@@ -52,6 +52,7 @@ Upgrade_PHP()
         8.1.*) Upgrade_PHP_81 ;;
         8.2.*) Upgrade_PHP_82 ;;
         8.3.*) Upgrade_PHP_83 ;;
+        8.4.*) Upgrade_PHP_84 ;;
         *) Echo_Red "Error: PHP ${php_ver} is not supported."; exit 1 ;;
     esac
     if [[ -s /usr/local/php/etc/php.ini && -s /usr/local/php/bin/php ]]; then
@@ -467,6 +468,48 @@ Upgrade_PHP_82()
 }
 
 Upgrade_PHP_83()
+{
+    Echo_Blue "Upgrading ${PHP_Ver}..."
+    Install_Libzip
+    Tar_Cd ${PHP_Ver}.tar.xz ${PHP_Ver}
+    ./configure --prefix=/usr/local/php \
+    --with-config-file-path=/usr/local/php/etc \
+    --with-config-file-scan-dir=/usr/local/php/conf.d \
+    ${php_with_n_a} \
+    --enable-mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd \
+    --with-iconv=/usr/local --with-freetype=/usr/local/freetype \
+    --with-jpeg --with-zlib --enable-xml \
+    --disable-rpath --enable-bcmath \
+    --enable-shmop --enable-sysvsem \
+    --with-curl --with-openssl \
+    --enable-mbregex --enable-mbstring \
+    --enable-intl --enable-pcntl \
+    --enable-ftp --enable-gd \
+    --with-mhash --enable-pcntl \
+    --enable-sockets --with-zip \
+    --enable-soap --with-gettext \
+    --enable-exif \
+    ${with_fileinfo} \
+    --enable-intl \
+    --enable-opcache \
+    --with-xsl \
+    --with-pear \
+    --with-webp \
+    ${php_with_options}
+
+    PHP_Make_And_Install
+
+    mkdir -p /usr/local/php/{etc,conf.d}
+    \cp php.ini-production /usr/local/php/etc/php.ini
+
+    if [[ "${STACK}" != "lamp" ]]; then
+        Create_PHPFPM_Conf
+    fi
+
+    Set_PHP
+}
+
+Upgrade_PHP_84()
 {
     Echo_Blue "Upgrading ${PHP_Ver}..."
     Install_Libzip
