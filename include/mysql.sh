@@ -318,7 +318,6 @@ log-bin=mysql-bin
 binlog_format=mixed
 server-id   = 1
 expire_logs_days = 10
-early-plugin-load = ""
 
 default_storage_engine = InnoDB
 innodb_file_per_table = 1

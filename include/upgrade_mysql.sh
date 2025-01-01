@@ -4,7 +4,7 @@ Backup_MySQL()
 {
     Echo_Blue "Backup MySQL Databases..."
     /usr/local/mysql/bin/mysqldump --defaults-file=~/.my.cnf --add-drop-table --all-databases > /root/mysql_all_backup${Upgrade_Date}.sql
-    if [[ $? -ne 0 ]]; then
+    if [[ $? -eq 0 ]]; then
         Echo_Blue "MySQL databases has been successfully backup to /root/mysql_all_backup${Upgrade_Date}.sql"
     else
         Echo_Red "MySQL databases backup failed."
@@ -78,9 +78,10 @@ Upgrade_MySQL()
     Cur_MySQL_Ver=$(/usr/local/mysql/bin/mysql_config --version)
     mysql_ver=''
     MySQL_Ver=''
+    Get_Distro_Info
 
     Verify_MySQL_Password
-    Echo_Cyan "Current PHP Version: ${Cur_MySQL_Ver}"
+    Echo_Cyan "Current MySQL Version: ${Cur_MySQL_Ver}"
     Echo_Cyan "Please get the MySQL version number from https://dev.mysql.com/downloads/mysql/"
     while [[ -z ${mysql_ver} ]]; do
         read -p "Please enter MySQL version, (example: 8.0.35): " mysql_ver
@@ -99,10 +100,66 @@ Upgrade_MySQL()
 
     MySQL_Ver="mysql-${mysql_ver}"
 
+    if [[ $mysql_ver =~ ^(5\.5|5\.6|5\.7) ]] && [[ "${ARCH}" == "x86_64" || "${ARCH}" == "i686" ]]; then
+        read -p "Use Generic Binaries [y/n]: " Bin
+        case ${Bin} in
+            y|Y)
+                Echo_Blue "Install MySQL use Generic Binaries"
+                Bin="y"
+                ;;
+            n|N)
+                Echo_Blue "Install MySQL use Source Code"
+                Bin="n"
+                ;;
+            *)
+                Echo_Red "Invalid input, Default use Generic Binaries"
+                Bin='y'
+                ;;
+        esac
+    elif [[ $mysql_ver =~ ^(8\.0) ]] && [[ "${ARCH}" == "x86_64" || "${ARCH}" == "i686" || "${ARCH}" == "aarch64" ]]; then
+        read -p "Use Generic Binaries [y/n]: " Bin
+        case ${Bin} in
+            y|Y)
+                Echo_Blue "Install MySQL use Generic Binaries"
+                Bin="y"
+                ;;
+            n|N)
+                Echo_Blue "Install MySQL use Source Code"
+                Bin="n"
+                ;;
+            *)
+                Echo_Red "Invalid input, Default use Generic Binaries"
+                Bin='y'
+                ;;
+        esac
+    elif [[ $mysql_ver =~ ^(8\.2) ]] && [[ "${ARCH}" == "x86_64" || "${ARCH}" == "aarch64" ]]; then
+        read -p "Use Generic Binaries [y/n]: " Bin
+        case ${Bin} in
+            y|Y)
+                Echo_Blue "Install MySQL use Generic Binaries"
+                Bin="y"
+                if [[ "${ARCH}" == "aarch64" ]]; then
+                    GLIBC_VER='2.17'
+                fi
+                ;;
+            n|N)
+                Echo_Blue "Install MySQL use Source Code"
+                Bin="n"
+                ;;
+            *)
+                Echo_Red "Invalid input, Default use Generic Binaries"
+                Bin='y'
+                ;;
+        esac
+    else
+        Bin="n"
+    fi
+
     Press_Start
     Print_Sys_Info
     Backup_MySQL
     /etc/init.d/mysql stop
+    cd ${SRC_DIR}
     case "${mysql_ver}" in
         5.5.*) Upgrade_MySQL_55 ;;
         5.6.*) Upgrade_MySQL_56 ;;
@@ -117,13 +174,13 @@ Upgrade_MySQL_55()
 {
     if [[ "${Bin}" == "y" ]]; then
         Echo_Blue "Upgrading ${MySQL_Ver} use use Generic Binaries..."
-        Download "https://cdn.mysql.com/archives/mysql-5.5/${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.gz" "${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.gz"
+        Download "https://dev.mysql.com/get/mysql-5.5/${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.gz" "${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.gz"
         Tar_Cd ${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.gz
         [ ! -d /usr/local/mysql ] && mkdir /usr/local/mysql
         mv ${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}/* /usr/local/mysql/
     else
         Echo_Blue "Upgrading MySQL ${MySQL_Ver} use use Source cdoe..."
-        Download "https://cdn.mysql.com/archives/mysql-5.5/${MySQL_Ver}.tar.gz" "${MySQL_Ver}.tar.gz"
+        Download "https://dev.mysql.com/get/mysql-5.5/${MySQL_Ver}.tar.gz" "${MySQL_Ver}.tar.gz"
         Tar_Cd ${MySQL_Ver}.tar.gz ${MySQL_Ver}
         if [[ ${ARCH} == "aarch64" || ${ARCH} == "arm" ]]; then
             patch -p1 < ${SRC_DIR}/patch/mysql-5.5-fix-arm-client_plugin.patch
@@ -225,13 +282,13 @@ Upgrade_MySQL_56()
 {
     if [[ "${Bin}" == "y" ]]; then
         Echo_Blue "Upgrading ${MySQL_Ver} use use Generic Binaries..."
-        Download "https://cdn.mysql.com/archives/mysql-5.6/${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.gz" "${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.gz"
+        Download "https://dev.mysql.com/get/mysql-5.6/${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.gz" "${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.gz"
         Tar_Cd ${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.gz
         [ ! -d /usr/local/mysql ] && mkdir /usr/local/mysql
         mv ${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}/* /usr/local/mysql/
     else
         Echo_Blue "Upgrading MySQL ${MySQL_Ver} use use Source cdoe..."
-        Download "https://cdn.mysql.com/archives/mysql-5.6/${MySQL_Ver}.tar.gz" "${MySQL_Ver}.tar.gz"
+        Download "https://dev.mysql.com/get/mysql-5.6/${MySQL_Ver}.tar.gz" "${MySQL_Ver}.tar.gz"
         if [[ "${isOpenSSL3}" == "y" ]]; then
             Install_Openssl
             MySQL_WITH_SSL='-DWITH_SSL=/usr/local/openssl1.1.1'
@@ -369,18 +426,20 @@ Upgrade_MySQL_57()
 {
     if [[ "${Bin}" == "y" ]]; then
         Echo_Blue "Upgrading ${MySQL_Ver} use use Generic Binaries..."
-        Download "https://cdn.mysql.com/Downloads/MySQL-5.7/${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.gz" "${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.gz"
+        Download "https://dev.mysql.com/get/MySQL-5.7/${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.gz" "${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.gz"
         if [ $? -ne 0 ]; then
-            Download "https://cdn.mysql.com/archives/mysql-5.7/${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.gz" "${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.gz"
+            Echo_Red "Unable to download the MySQL installation file."
+            exit 1
         fi
         Tar_Cd ${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.gz
         [ ! -d /usr/local/mysql ] && mkdir /usr/local/mysql
         mv ${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}/* /usr/local/mysql/
     else
         Echo_Blue "Upgrading MySQL ${MySQL_Ver} use use Source cdoe..."
-        Download "https://cdn.mysql.com//Downloads/MySQL-5.7/mysql-boost-${mysql_ver}.tar.gz" "${MySQL_Ver}.tar.gz"
+        Download "https://dev.mysql.com/get/MySQL-5.7/mysql-boost-${mysql_ver}.tar.gz" "${MySQL_Ver}.tar.gz"
         if [ $? -ne 0 ]; then
-            Download "https://cdn.mysql.com/archives/mysql-5.7/mysql-boost-${mysql_ver}.tar.gz" "${MySQL_Ver}.tar.gz"
+            Echo_Red "Unable to download the MySQL installation file."
+            exit 1
         fi
         Tar_Cd ${MySQL_Ver}.tar.gz ${MySQL_Ver}
         cmake -DCMAKE_INSTALL_PREFIX=/usr/local/mysql \
@@ -476,18 +535,20 @@ Upgrade_MySQL_80()
 {
     if [[ "${Bin}" == "y" ]]; then
         Echo_Blue "Upgrading ${MySQL_Ver} use use Generic Binaries..."
-        Download "https://cdn.mysql.com//Downloads/MySQL-8.0/${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.xz" "${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.xz"
+        Download "https://dev.mysql.com/get/MySQL-8.0/${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.xz" "${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.xz"
         if [ $? -ne 0 ]; then
-            Download "https://cdn.mysql.com/archives/mysql-8.0/${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.gz" "${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.gz"
+            Echo_Red "Unable to download the MySQL installation file."
+            exit 1
         fi
         Tar_Cd ${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.xz
         [ ! -d /usr/local/mysql ] && mkdir /usr/local/mysql
         mv ${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}/* /usr/local/mysql/
     else
         Echo_Blue "Upgrading MySQL ${MySQL_Ver} use use Source cdoe..."
-        Download "https://cdn.mysql.com//Downloads/MySQL-8.0/${MySQL_Ver}.tar.gz" "${MySQL_Ver}.tar.gz"
+        Download "https://dev.mysql.com/get/MySQL-8.0/mysql-boost-${mysql_ver}.tar.gz" "${MySQL_Ver}.tar.gz"
         if [ $? -ne 0 ]; then
-            Download "https://cdn.mysql.com/archives/mysql-8.0/${MySQL_Ver}.tar.gz" "${MySQL_Ver}.tar.gz"
+            Echo_Red "Unable to download the MySQL installation file."
+            exit 1
         fi
         Tar_Cd ${MySQL_Ver}.tar.gz ${MySQL_Ver}
         mkdir build && cd build
@@ -581,18 +642,20 @@ Upgrade_MySQL_82()
 {
     if [[ "${Bin}" == "y" ]]; then
         Echo_Blue "Upgrading MySQL ${MySQL80_Ver} use use Generic Binaries..."
-        Download "https://cdn.mysql.com//Downloads/MySQL-8.2/${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.xz" "${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.xz"
+        Download "https://dev.mysql.com/get/MySQL-8.2/${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.xz" "${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.xz"
         if [ $? -ne 0 ]; then
-            Download "https://cdn.mysql.com/archives/mysql-8.2/${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.gz" "${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.gz"
+            Echo_Red "Unable to download the MySQL installation file."
+            exit 1
         fi
         Tar_Cd ${MySQL82_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.xz
         [ ! -d /usr/local/mysql ] && mkdir /usr/local/mysql
         mv ${MySQL82_Ver}-linux-glibc${GLIBC_VER}-${ARCH}/* /usr/local/mysql/
     else
         Echo_Blue "Upgrading MySQL ${MySQL82_Ver} use use Source cdoe..."
-        Download "https://cdn.mysql.com//Downloads/MySQL-8.2/${MySQL_Ver}.tar.gz" "${MySQL_Ver}.tar.gz"
+        Download "https://dev.mysql.com/get/MySQL-8.2/${MySQL_Ver}.tar.gz" "${MySQL_Ver}.tar.gz"
         if [ $? -ne 0 ]; then
-            Download "https://cdn.mysql.com/archives/mysql-8.2/${MySQL_Ver}.tar.gz" "${MySQL_Ver}.tar.gz"
+            Echo_Red "Unable to download the MySQL installation file."
+            exit 1
         fi
         Tar_Cd ${MySQL_Ver}.tar.gz ${MySQL_Ver}
         mkdir build && cd build

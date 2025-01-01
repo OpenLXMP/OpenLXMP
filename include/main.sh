@@ -267,7 +267,7 @@ Verify_MySQL_Password()
     status=1
     while [ $status -eq 1 ]; do
         read -s -p "Enter current root password of MySQL (Password not displayed): " DBRootPasswd
-        Make_TempMycnf "${DBRootPasswd}"
+        Make_Mycnf "${DBRootPasswd}"
         Do_Query ""
         status=$?
     done
