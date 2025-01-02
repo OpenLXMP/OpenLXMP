@@ -40,7 +40,7 @@ Disable_Selinux()
 Yum_Remove_Packages()
 {
     Echo_Blue "Remove Packages..."
-    local YUM_RM_PKGS='mysql mysql-* mariadb mariadb-* php php-* nginx httpd httpd-*'
+    local YUM_RM_PKGS='mysql mysql-server mysql-common mariadb mariadb-server mariadb-common php php-* nginx httpd httpd-*'
     local packages
     for packages in ${YUM_RM_PKGS}
         do yum remove $packages -y
@@ -50,7 +50,7 @@ Yum_Remove_Packages()
 Apt_Remove_packages()
 {
     Echo_Blue "Remove Packages..."
-    local YUM_RM_PKGS='mysql mysql-* mariadb mariadb-* php php-* nginx apache2 apache2-*'
+    local YUM_RM_PKGS='mysql-client mysql-common mysql-server mariadb-client mariadb-common mariadb-server php php-* nginx apache2 apache2-*'
     local packages
     for packages in ${YUM_RM_PKGS}
         do apt-get purge $packages -y
