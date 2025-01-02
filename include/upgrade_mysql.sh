@@ -49,16 +49,22 @@ EOF
             [ $? -eq 0 ] && echo "MySQL root password set Sucessfully." || echo "Failed to set MySQL root password!"
             Do_Query "FLUSH PRIVILEGES;"
             [ $? -eq 0 ] && echo "FLUSH PRIVILEGES Sucessfully." || echo "Failed to FLUSH PRIVILEGES!"
-        elif [[ ! $mysql_ver =~ ^(8\.0|8\.2) ]]; then
+        elif [[ ! $mysql_ver =~ ^(8\.0|8\.4) ]]; then
             Do_Query "ALTER USER 'root'@'localhost' IDENTIFIED BY '${DBRootPasswd}';"
             [ $? -eq 0 ] && echo "MySQL root password set Sucessfully." || echo "Failed to set MySQL root password!"
         fi
     fi
 
-    echo "Restore backup databases..."
+    ln -sf /usr/local/mysql/bin/mysql /usr/bin/mysql
+    ln -sf /usr/local/mysql/bin/mysqldump /usr/bin/mysqldump
+    ln -sf /usr/local/mysql/bin/myisamchk /usr/bin/myisamchk
+    ln -sf /usr/local/mysql/bin/mysqld_safe /usr/bin/mysqld_safe
+    ln -sf /usr/local/mysql/bin/mysqlcheck /usr/bin/mysqlcheck
+
+    Echo_Blue "Restore backup databases from SQL file..."
     /usr/local/mysql/bin/mysql --defaults-file=~/.my.cnf < /root/mysql_all_backup${Upgrade_Date}.sql
     echo "Repair databases..."
-    if echo "${mysql_ver}" | grep -qE '^8\.0\.1[6-9]|[2-9][0-9]+$'; then
+    if [[ "${mysql_ver}" == "8.0.16" || "${mysql_ver}" > "8.0.16" ]]; then
         /etc/init.d/mysql stop
         echo "Upgring MySQL..."
         /usr/local/mysql/bin/mysqld --user=mysql --upgrade=FORCE &
@@ -69,8 +75,14 @@ EOF
         /usr/local/mysql/bin/mysql_upgrade -u root -p${DBRootPasswd}
     fi
 
-    /etc/init.d/mysql restart
     cd ${SRC_DIR}
+    Del_Mycnf
+    if [[ -s /usr/local/mysql/bin/mysql ]]; then
+        /etc/init.d/mysql restart
+        Echo_Green "MySQL has been successfully upgraded to the version: ${mysql_ver}."
+    else
+        Echo_Red "MySQL upgrade failed."
+    fi
 }
 
 Upgrade_MySQL()
@@ -92,7 +104,7 @@ Upgrade_MySQL()
         exit 1
     fi
 
-    if [[ ! $mysql_ver =~ ^(5\.5|5\.6|5\.7|8\.0|8\.2) ]]; then
+    if [[ ! $mysql_ver =~ ^(5\.5|5\.6|5\.7|8\.0|8\.4) ]]; then
         Echo_Red "Error: MySQL ${mysql_ver} is not supported."
         exit 1
     fi
@@ -163,7 +175,7 @@ Upgrade_MySQL()
         5.6.*) Upgrade_MySQL_56 ;;
         5.7.*) Upgrade_MySQL_57 ;;
         8.0.*) Upgrade_MySQL_80 ;;
-        8.2.*) Upgrade_MySQL_82 ;;
+        8.4.*) Upgrade_MySQL_84 ;;
         *) Echo_Red "Error: MySQL ${mysql_ver} is not supported."; exit 1 ;;
     esac
 }
@@ -273,7 +285,7 @@ EOF
 
     chown -R mysql:mysql /usr/local/mysql
     /usr/local/mysql/scripts/mysql_install_db --defaults-file=/etc/my.cnf --basedir=/usr/local/mysql --user=mysql --datadir=${Default_MySQL_Data_Dir}
-    MySQL_Init
+    MySQL_Init_Upgrade
 }
 
 Upgrade_MySQL_56()
@@ -417,7 +429,7 @@ EOF
 
     chown -R mysql:mysql /usr/local/mysql
     /usr/local/mysql/scripts/mysql_install_db --defaults-file=/etc/my.cnf --basedir=/usr/local/mysql --user=mysql --datadir=${Default_MySQL_Data_Dir}
-    MySQL_Init
+    MySQL_Init_Upgrade
 }
 
 Upgrade_MySQL_57()
@@ -526,7 +538,7 @@ EOF
 
     chown -R mysql:mysql /usr/local/mysql
     /usr/local/mysql/bin/mysqld --initialize-insecure --basedir=/usr/local/mysql --user=mysql --datadir=${Default_MySQL_Data_Dir}
-    MySQL_Init
+    MySQL_Init_Upgrade
 }
 
 Upgrade_MySQL_80()
@@ -633,24 +645,24 @@ EOF
 
     chown -R mysql:mysql /usr/local/mysql
     /usr/local/mysql/bin/mysqld --initialize-insecure --basedir=/usr/local/mysql --user=mysql --datadir=${Default_MySQL_Data_Dir}
-    MySQL_Init
+    MySQL_Init_Upgrade
 }
 
-Upgrade_MySQL_82()
+Upgrade_MySQL_84()
 {
     if [[ "${Bin}" == "y" ]]; then
-        Echo_Blue "Upgrading MySQL ${MySQL80_Ver} use use Generic Binaries..."
-        Download "https://dev.mysql.com/get/MySQL-8.2/${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.xz" "${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.xz"
+        Echo_Blue "Upgrading MySQL ${MySQL_Ver} use use Generic Binaries..."
+        Download "https://dev.mysql.com/get/MySQL-8.4/${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.xz" "${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.xz"
         if [ $? -ne 0 ]; then
             Echo_Red "Unable to download the MySQL installation file."
             exit 1
         fi
-        Tar_Cd ${MySQL82_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.xz
+        Tar_Cd ${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.xz
         [ ! -d /usr/local/mysql ] && mkdir /usr/local/mysql
-        mv ${MySQL82_Ver}-linux-glibc${GLIBC_VER}-${ARCH}/* /usr/local/mysql/
+        mv ${MySQL_Ver}-linux-glibc${GLIBC_VER}-${ARCH}/* /usr/local/mysql/
     else
-        Echo_Blue "Upgrading MySQL ${MySQL82_Ver} use use Source cdoe..."
-        Download "https://dev.mysql.com/get/MySQL-8.2/${MySQL_Ver}.tar.gz" "${MySQL_Ver}.tar.gz"
+        Echo_Blue "Upgrading MySQL ${MySQL_Ver} use use Source cdoe..."
+        Download "https://dev.mysql.com/get/MySQL-8.4/${MySQL_Ver}.tar.gz" "${MySQL_Ver}.tar.gz"
         if [ $? -ne 0 ]; then
             Echo_Red "Unable to download the MySQL installation file."
             exit 1
@@ -702,7 +714,7 @@ explicit_defaults_for_timestamp = true
 max_connections = 500
 max_connect_errors = 100
 open_files_limit = 65535
-default_authentication_plugin = mysql_native_password
+mysql_native_password=ON
 
 log-bin=mysql-bin
 binlog_format=mixed
@@ -740,70 +752,5 @@ EOF
 
     chown -R mysql:mysql /usr/local/mysql
     /usr/local/mysql/bin/mysqld --initialize-insecure --basedir=/usr/local/mysql --user=mysql --datadir=${Default_MySQL_Data_Dir}
-    MySQL_Init
-}
-
-MySQL_Init()
-{
-    chown -R mysql:mysql ${Default_MySQL_Data_Dir}
-    \cp /usr/local/mysql/support-files/mysql.server /etc/init.d/mysql
-    \cp ${CUR_DIR}/init.d/mysql.service /etc/systemd/system/mysql.service
-    chmod 755 /etc/init.d/mysql
-    cat > /etc/ld.so.conf.d/mysql.conf<<EOF
-/usr/local/mysql/lib
-/usr/local/lib
-EOF
-    ldconfig
-    ln -sf /usr/local/mysql/lib/mysql /usr/lib/mysql
-    ln -sf /usr/local/mysql/include/mysql /usr/include/mysql
-    /etc/init.d/mysql start
-    sleep 5
-    /usr/local/mysql/bin/mysqladmin -u root password "${DBRootPasswd}"
-    if [ $? -ne 0 ]; then
-        Echo_Red "Failed to set MySQL root password, trying alternative methods."
-        /etc/init.d/mysql restart
-        Make_Mycnf
-        if [[ "${DBSelect}" == "1" ]] || [[ "${DBSelect}" == "2" ]]; then
-            Do_Query "UPDATE mysql.user SET Password=PASSWORD('${DBRootPasswd}') WHERE User='root';"
-            [ $? -eq 0 ] && echo "MySQL root password set Sucessfully." || echo "Failed to set MySQL root password!"
-            Do_Query "FLUSH PRIVILEGES;"
-            [ $? -eq 0 ] && echo "FLUSH PRIVILEGES Sucessfully." || echo "Failed to FLUSH PRIVILEGES!"
-        elif [[ "${DBSelect}" == "3" ]]; then
-            Do_Query "UPDATE mysql.user SET authentication_string=PASSWORD('${DBRootPasswd}') WHERE User='root';"
-            [ $? -eq 0 ] && echo "MySQL root password set Sucessfully." || echo "Failed to set MySQL root password!"
-            Do_Query "FLUSH PRIVILEGES;"
-            [ $? -eq 0 ] && echo "FLUSH PRIVILEGES Sucessfully." || echo "Failed to FLUSH PRIVILEGES!"
-        elif [[ "${DBSelect}" == "4" ]] || [[ "${DBSelect}" == "5" ]]; then
-            Do_Query "ALTER USER 'root'@'localhost' IDENTIFIED BY '${DBRootPasswd}';"
-            [ $? -eq 0 ] && echo "MySQL root password set Sucessfully." || echo "Failed to set MySQL root password!"
-        fi
-    fi
-
-    ln -sf /usr/local/mysql/bin/mysql /usr/bin/mysql
-    ln -sf /usr/local/mysql/bin/mysqldump /usr/bin/mysqldump
-    ln -sf /usr/local/mysql/bin/myisamchk /usr/bin/myisamchk
-    ln -sf /usr/local/mysql/bin/mysqld_safe /usr/bin/mysqld_safe
-    ln -sf /usr/local/mysql/bin/mysqlcheck /usr/bin/mysqlcheck
-
-    Echo_Blue "Restore backup databases from SQL file..."
-    /usr/local/mysql/bin/mysql --defaults-file=~/.my.cnf < /root/mysql_all_backup${Upgrade_Date}.sql
-
-    Echo_Blue "Upgrading databases..."
-    if [[ "${mysql_ver}" == "8.0.16" || "${mysql_ver}" > "8.0.16" ]]; then
-        /etc/init.d/mysql stop
-        /usr/local/mysql/bin/mysqld --user=mysql --upgrade=FORCE &
-        sleep 300
-        /usr/local/mysql/bin/mysqladmin --defaults-file=~/.my.cnf shutdown
-    else
-        /usr/local/mysql/bin/mysql_upgrade -u root -p${DBRootPasswd}
-    fi
-
-    cd ${SRC_DIR}
-    Del_Mycnf
-    if [[ -s /usr/local/mysql/bin/mysql ]]; then
-        /etc/init.d/mysql restart
-        Echo_Green "MySQL has been successfully upgraded to the version: ${mysql_ver}."
-    else
-        Echo_Red "MySQL upgrade failed."
-    fi
+    MySQL_Init_Upgrade
 }
