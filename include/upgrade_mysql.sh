@@ -78,7 +78,6 @@ Upgrade_MySQL()
     Cur_MySQL_Ver=$(/usr/local/mysql/bin/mysql_config --version)
     mysql_ver=''
     MySQL_Ver=''
-    Get_Distro_Info
 
     Verify_MySQL_Password
     Echo_Cyan "Current MySQL Version: ${Cur_MySQL_Ver}"
@@ -132,15 +131,13 @@ Upgrade_MySQL()
                 Bin='y'
                 ;;
         esac
-    elif [[ $mysql_ver =~ ^(8\.2) ]] && [[ "${ARCH}" == "x86_64" || "${ARCH}" == "aarch64" ]]; then
+    elif [[ $mysql_ver =~ ^(8\.4) ]] && [[ "${ARCH}" == "x86_64" || "${ARCH}" == "aarch64" ]]; then
         read -p "Use Generic Binaries [y/n]: " Bin
         case ${Bin} in
             y|Y)
                 Echo_Blue "Install MySQL use Generic Binaries"
                 Bin="y"
-                if [[ "${ARCH}" == "aarch64" ]]; then
-                    GLIBC_VER='2.17'
-                fi
+                GLIBC_VER='2.17'
                 ;;
             n|N)
                 Echo_Blue "Install MySQL use Source Code"
@@ -149,6 +146,7 @@ Upgrade_MySQL()
             *)
                 Echo_Red "Invalid input, Default use Generic Binaries"
                 Bin='y'
+                GLIBC_VER='2.17'
                 ;;
         esac
     else

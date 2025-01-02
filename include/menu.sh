@@ -7,7 +7,7 @@ MySQL_Select_Menu()
     echo " 2. MySQL 5.6 (Default)"
     echo " 3. MySQL 5.7"
     echo " 4. MySQL 8.0"
-    echo " 5. MySQL 8.2"
+    echo " 5. MySQL 8.4"
     echo " 0. No DataBase installation"
     echo "================================"
     read -p "Please enter: " DBSelect
@@ -16,7 +16,7 @@ MySQL_Select_Menu()
         2) Echo_Blue "Install MySQL 5.6" ;;
         3) Echo_Blue "Install MySQL 5.7" ;;
         4) Echo_Blue "Install MySQL 8.0" ;;
-        5) Echo_Blue "Install MySQL 8.2" ;;
+        5) Echo_Blue "Install MySQL 8.4" ;;
         0) Echo_Blue "No Database installation" ;;
         *) Echo_Blue "Invalid input, defaulting to MySQL 5.6"; DBSelect='2' ;;
     esac
@@ -62,9 +62,7 @@ MySQL_Use_Bin()
             y|Y)
                 Echo_Blue "Install MySQL use Generic Binaries"
                 Bin="y"
-                if [[ "${ARCH}" == "aarch64" ]]; then
-                    GLIBC_VER='2.17'
-                fi
+                GLIBC_VER='2.17'
                 ;;
             n|N)
                 Echo_Blue "Install MySQL use Source Code"
@@ -73,6 +71,7 @@ MySQL_Use_Bin()
             *) 
                 Echo_Red "Invalid input, Default use Generic Binaries"
                 Bin='y'
+                GLIBC_VER='2.17'
                 ;;
         esac
     else

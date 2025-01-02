@@ -78,7 +78,7 @@ LNMP_Stack()
         2) Install_MySQL_56 ;;
         3) Install_MySQL_57 ;;
         4) Install_MySQL_80 ;;
-        5) Install_MySQL_82 ;;
+        5) Install_MySQL_84 ;;
     esac
 
     PHP_Options
@@ -109,7 +109,7 @@ LAMP_Stack()
         2) Install_MySQL_56 ;;
         3) Install_MySQL_57 ;;
         4) Install_MySQL_80 ;;
-        5) Install_MySQL_82 ;;
+        5) Install_MySQL_84 ;;
     esac
 
     PHP_Options

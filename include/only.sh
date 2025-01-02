@@ -162,7 +162,7 @@ Only_Install_MySQL()
         2) Install_MySQL_56 ;;
         3) Install_MySQL_57 ;;
         4) Install_MySQL_80 ;;
-        5) Install_MySQL_82 ;;
+        5) Install_MySQL_84 ;;
     esac
     Check_MySQL
     if [[ "${MySQL_Install_Status}" == "y" ]]; then

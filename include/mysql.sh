@@ -451,18 +451,18 @@ EOF
     MySQL_Init
 }
 
-Install_MySQL_82()
+Install_MySQL_84()
 {
     if [[ "${Bin}" == "y" ]]; then
-        Echo_Blue "Installing ${MySQL80_Ver} use use Generic Binaries..."
-        Download "${MySQL82_Bin_URL}" "${MySQL82_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.xz"
-        Tar_Cd ${MySQL82_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.xz
+        Echo_Blue "Installing ${MySQL84_Ver} use use Generic Binaries..."
+        Download "${MySQL84_Bin_URL}${MySQL84_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.xz"
+        Tar_Cd ${MySQL84_Ver}-linux-glibc${GLIBC_VER}-${ARCH}.tar.xz
         [ ! -d /usr/local/mysql ] && mkdir /usr/local/mysql
-        mv ${MySQL82_Ver}-linux-glibc${GLIBC_VER}-${ARCH}/* /usr/local/mysql/
+        mv ${MySQL84_Ver}-linux-glibc${GLIBC_VER}-${ARCH}/* /usr/local/mysql/
     else
-        Echo_Blue "Installing ${MySQL82_Ver} use use Source cdoe..."
-        Download "${MySQL82_URL}" "${MySQL82_Ver}.tar.gz"
-        Tar_Cd ${MySQL82_Ver}.tar.gz ${MySQL82_Ver}
+        Echo_Blue "Installing ${MySQL84_Ver} use use Source cdoe..."
+        Download "${MySQL84_URL}" "${MySQL84_Ver}.tar.gz"
+        Tar_Cd ${MySQL84_Ver}.tar.gz ${MySQL84_Ver}
         mkdir build && cd build
         cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local/mysql \
         -DSYSCONFDIR=/etc \
@@ -509,7 +509,7 @@ explicit_defaults_for_timestamp = true
 max_connections = 500
 max_connect_errors = 100
 open_files_limit = 65535
-default_authentication_plugin = mysql_native_password
+mysql_native_password=ON
 
 log-bin=mysql-bin
 binlog_format=mixed
