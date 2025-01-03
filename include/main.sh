@@ -195,16 +195,36 @@ Press_Start()
 
 Download()
 {
-    local url="$1"
+    local urls=($1)
     local filename="$2"
+    local success=0
+
     if [ -s "${filename}" ]; then
         echo "${filename} [found]"
+        return 0
     else
         echo "Downloading ${filename}..."
-        if [[ -n "${filename}" ]]; then
-            wget --progress=dot -e dotbytes=10M -c --no-check-certificate -O "$filename" "$url"
+        for url in "${urls[@]}"; do
+            if [[ -n "${filename}" ]]; then
+                wget --progress=dot -e dotbytes=10M -c --no-check-certificate -O "${filename}" "${url}"
+            else
+                wget --progress=dot -e dotbytes=10M -c --no-check-certificate "${url}"
+            fi
+
+            if [ $? -eq 0 ]; then
+                success=1
+                break
+            else
+                echo "Failed to download from ${url}, trying next URL..."
+            fi
+        done
+
+        if [ $success -eq 0 ]; then
+            echo "Failed to download ${filename} from all provided URLs."
+            return 1
         else
-            wget --progress=dot -e dotbytes=10M -c --no-check-certificate "$url"
+            echo "Successfully downloaded ${filename}."
+            return 0
         fi
     fi
 }
