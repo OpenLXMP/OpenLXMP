@@ -1,0 +1,68 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          apache
+# Required-Start:    $network $remote_fs $local_fs
+# Required-Stop:     $network $remote_fs $local_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Apache web server
+# Description:       Start the Apache web server.
+### END INIT INFO
+
+# Author :  OpenLXMP
+# Website:  https://OpenLXMP.com
+
+#
+# Apache control script designed to allow an easy command line interface
+# to controlling Apache.
+#
+ACMD="$1"
+ARGV="$@"
+
+# the path to your httpd binary, including options if necessary
+HTTPD='/usr/local/apache/bin/httpd'
+
+# pick up any necessary environment variables
+if test -f /usr/local/apache/bin/envvars; then
+  . /usr/local/apache/bin/envvars
+fi
+
+# Set this variable to a command that increases the maximum
+# number of file descriptors allowed per child process. This is
+# critical for configurations that use many file descriptors,
+# such as mass vhosting, or a multithreaded server.
+ULIMIT_MAX_FILES="ulimit -S -n `ulimit -H -n`"
+
+# Set the maximum number of file descriptors allowed per child process.
+if [ "x$ULIMIT_MAX_FILES" != "x" ] ; then
+    $ULIMIT_MAX_FILES
+fi
+
+ERROR=0
+if [ "x$ARGV" = "x" ] ; then
+    ARGV="-h"
+fi
+
+case $ACMD in
+start|stop|restart|graceful|graceful-stop)
+    $HTTPD -k $ARGV
+    ERROR=$?
+    ;;
+configtest)
+    $HTTPD -t
+    ERROR=$?
+    ;;
+status)
+    if ps aux | grep -v grep | grep $HTTPD > /dev/null
+    then
+        echo "Apache is running."
+    else
+        echo "Apache is not running."
+    fi
+    ;;
+*)
+    $HTTPD "$@"
+    ERROR=$?
+esac
+
+exit $ERROR

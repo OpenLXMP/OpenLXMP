@@ -61,6 +61,8 @@ Install_Apache()
     mkdir /usr/local/apache/conf/vhost
 
     \cp ${CUR_DIR}/init.d/httpd.service /etc/systemd/system/httpd.service
+    \cp ${CUR_DIR}/init.d/init.d.httpd /etc/init.d/httpd
+    chmod +x /etc/init.d/httpd
 
     cd ${SRC_DIR}
     rm -rf ${Apache_Ver}

@@ -294,23 +294,54 @@ Verify_MySQL_Password()
     echo "OK, MySQL root password correct."
 }
 
+Check_Systemd()
+{
+    if [ "$(ps -p 1 -o comm=)" = "systemd" ]; then
+        return 0
+    fi
+
+    if command -v systemctl >/dev/null 2>&1 && systemctl list-units --type=service >/dev/null 2>&1; then
+        return 0
+    fi
+
+    if [ -d "/run/systemd/system" ]; then
+        return 0
+    fi
+
+    return 1
+}
+
 Enable_Startup()
 {
     local service_name="$1"
-    if [[ -s /etc/systemd/system/${service_name}.service ]]; then
-        Echo_Blue "Enable ${service_name} to start on boot..."
+    Echo_Blue "Enable ${service_name} to start on boot..."
+    if Check_Systemd && [[ -s /etc/systemd/system/${service_name}.service ]]; then
         systemctl daemon-reload
         systemctl enable ${service_name}.service
+    else
+        if [[ "${PM}" == "yum" ]]; then
+            chkconfig --add ${service_name}
+            chkconfig ${service_name} on
+        elif [[ "${PM}" == "apt" ]]; then
+            update-rc.d -f ${service_name} defaults
+        fi
     fi
 }
 
 Disable_Startup()
 {
     local service_name="$1"
-    if [[ -s /etc/systemd/system/${service_name}.service ]]; then
-        Echo_Blue "Disable ${service_name} from starting on boot..."
+    Echo_Blue "Disable ${service_name} from starting on boot..."
+    if Check_Systemd && [[ -s /etc/systemd/system/${service_name}.service ]]; then
         systemctl daemon-reload
         systemctl disable ${service_name}.service
+    else
+        if [[ "${PM}" == "yum" ]]; then
+            chkconfig ${service_name} off
+            chkconfig --del ${service_name}
+        elif [[ "${PM}" == "apt" ]]; then
+            update-rc.d -f ${service_name} remove
+        fi
     fi
 }
 

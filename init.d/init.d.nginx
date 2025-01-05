@@ -1,0 +1,120 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          nginx
+# Required-Start:    $network $local_fs $remote_fs
+# Required-Stop:     $network $local_fs $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start/stop nginx
+# Description:       Enable service provided by nginx.
+### END INIT INFO
+
+# Author :  OpenLXMP
+# Website:  https://OpenLXMP.com
+
+# Nginx paths
+NGINX_BIN="/usr/local/nginx/sbin/nginx"
+NGINX_CONF="/usr/local/nginx/conf/nginx.conf"
+
+# Function to check if Nginx is running
+is_nginx_running() {
+    if ps aux | grep -v grep | grep -q "$NGINX_BIN"; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+start_nginx() {
+    if is_nginx_running; then
+        echo "Nginx is already running."
+        return 0
+    fi
+    echo "Starting Nginx..."
+    $NGINX_BIN -c $NGINX_CONF
+    sleep 1
+    if is_nginx_running; then
+        echo "Nginx started successfully."
+    else
+        echo "Failed to start Nginx."
+    fi
+}
+
+stop_nginx() {
+    if ! is_nginx_running; then
+        echo "Nginx is not running."
+        return 0
+    fi
+    echo "Stopping Nginx..."
+    ps aux | grep -v grep | grep "$NGINX_BIN" | awk '{print $2}' | xargs kill
+    sleep 1
+    if is_nginx_running; then
+        echo "Failed to stop Nginx."
+    else
+        echo "Nginx stopped successfully."
+    fi
+}
+
+restart_nginx() {
+    echo "Restarting Nginx..."
+    stop_nginx
+    start_nginx
+}
+
+force_kill_nginx() {
+    if ! is_nginx_running; then
+        echo "Nginx is not running."
+        return 0
+    fi
+    echo "Force killing Nginx..."
+    ps aux | grep -v grep | grep "$NGINX_BIN" | awk '{print $2}' | xargs kill -9
+    sleep 1
+    if is_nginx_running; then
+        echo "Failed to kill Nginx."
+    else
+        echo "Nginx forcefully terminated."
+    fi
+}
+
+reload_nginx() {
+    if ! is_nginx_running; then
+        echo "Nginx is not running."
+        return 0
+    fi
+    echo "Reloading Nginx configuration..."
+    $NGINX_BIN -s reload
+    echo "Nginx configuration reloaded."
+}
+
+nginx_status() {
+    if is_nginx_running; then
+        echo "Nginx is running."
+    else
+        echo "Nginx is not running."
+    fi
+}
+
+case "$1" in
+    start)
+        start_nginx
+        ;;
+    stop)
+        stop_nginx
+        ;;
+    restart)
+        restart_nginx
+        ;;
+    kill)
+        force_kill_nginx
+        ;;
+    reload)
+        reload_nginx
+        ;;
+    status)
+        nginx_status
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|kill|reload|status}"
+        exit 1
+        ;;
+esac
