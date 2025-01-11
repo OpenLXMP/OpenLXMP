@@ -39,6 +39,8 @@ Install_Nginx()
 
     mkdir /usr/local/nginx/conf/vhost
 
+    cp -r ${CUR_DIR}/conf/rewrite /usr/local/nginx/conf/
+
     \cp ${CUR_DIR}/init.d/nginx.service /etc/systemd/system/nginx.service
     \cp ${CUR_DIR}/init.d/init.d.nginx /etc/init.d/nginx
     chmod +x /etc/init.d/nginx
