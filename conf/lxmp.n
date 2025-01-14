@@ -134,6 +134,17 @@ Issue_Cert()
     eval $acme_cmd
 }
 
+Create_Root_Dir()
+{
+    if [ ! -d "${root_dir}" ]; then
+        echo "Create VirtualHost directory for ${main_domain} ..."
+        mkdir -p "${root_dir}"
+        echo "Set permissions for the VirtualHost directory of the domain ${main_domain} ..."
+        chmod -R 755 "${root_dir}"
+        chown -R www:www "${root_dir}"
+    fi
+}
+
 Create_Vhost_Config()
 {
     echo "Create Nginx virutalhost for ${main_domain} ..."
@@ -343,6 +354,7 @@ Add_Vhost()
 {
     Add_Vhost_Menu
     Create_Vhost_Config
+    Create_Root_Dir
     Reload_Nginx
     if [[ "${enable_ssl}" == "y" ]]; then
         if [[ "${ssl_type}" =~ ^2|3$ ]]; then
@@ -350,6 +362,8 @@ Add_Vhost()
         fi
         if [[ -s "${ssl_key_path}" && -s "${ssl_cert_path}" ]]; then
             Create_SSL_Vhost_Config
+        else
+            echo "SSL SSL Certificate or key File not found."
         fi
     fi
     Reload_Nginx
