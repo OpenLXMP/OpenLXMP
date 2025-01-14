@@ -1,0 +1,506 @@
+#!/usr/bin/env bash
+# Author: OpenLXMP admin@OpenLXMP.com
+# Website: https://OpenLXMP.com
+# Github: https://github.com/OpenLXMP/OpenLXMP
+# Version: 1.0
+# 
+
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:~/bin
+
+if [ $(id -u) != "0" ]; then
+    echo "Error: You must run the current script with root or sudo."
+    exit 1
+fi
+
+LXMP_Ver="1.0"
+WWW_ROOT="/home/wwwroot"
+ACME_URL="https://raw.githubusercontent.com/acmesh-official/acme.sh/master/acme.sh"
+APACHE_BIN="/usr/local/apache/bin/httpd"
+ACME_SH_BIN="/root/.acme.sh/acme.sh"
+MYSQL_BIN="/usr/local/mysql/bin/mysql"
+APACHE_CONF="/usr/local/apache/conf/httpd.conf"
+APACHE_VHOST_DIR="/usr/local/apache/conf/vhost"
+APACHE_SSL_DIR="/usr/local/apache/conf/ssl"
+SSL_FLAG_FILE="/usr/local/apache/conf/.ssl_enabled"
+
+Reload_Apache()
+{
+    ${APACHE_BIN} -k graceful
+}
+
+Add_Vhost_Menu()
+{
+    while :; do
+        read -p "Enter the domain names (separated by spaces): " domains
+        if [[ -z "${domains}" ]]; then
+            echo "Domain name can not be empty!"
+        else
+            echo "Domain list: ${domains}"
+            break
+        fi
+    done
+    main_domain=$(echo "${domains}" | awk '{print $1}')
+    alias_domains=$(echo "$domains" | awk '{$1=""; print $0}' | xargs)
+    if [[ ! -z "${alias_domains}" ]]; then
+        server_alias="ServerAlias ${alias_domains}"
+    else
+        server_alias=""
+    fi
+
+    read -p "Enter the root directory: " root_dir
+    if [[ -z "${root_dir}" ]]; then
+        root_dir="${WWW_ROOT}/${main_domain}"
+    fi
+    echo "root directory: ${root_dir}"
+
+    read -p "Enter admin email: " server_admin
+    if [[ -z "${server_admin}" ]]; then
+        server_admin="webmaster@example.com"
+    fi
+    echo "Server admin email: ${server_admin}"
+
+    read -p "Enable log? (y/n): " enable_log
+    if [[ "${enable_log}" == "y"  ]]; then
+        echo "access log: /home/wwwlogs/${main_domain}.log"
+        access_log="CustomLog /home/wwwlogs/${main_domain}.log combined"
+        error_log="ErrorLog /home/wwwlogs/${main_domain}.error.log"
+    else
+        access_log=""
+        error_log=""
+    fi
+
+    read -p "Enable SSL? (y/n): " enable_ssl
+    if [[ "${enable_ssl}" == "y" ]]; then
+        Add_SSL_Menu
+    fi
+}
+
+Add_SSL_Menu()
+{
+    echo ""
+    echo "1: Use your own SSL certificate"
+    echo "2: Use Let's Encrypt free certificate"
+    echo "3: Use ZeroSSL free certificate"
+    read -p "Enter 1 , 2 or 3: " ssl_type
+    if [[ "${ssl_type}" == "1" ]]; then
+        read -p "Please enter SSL Certificat path: " ssl_cert_path
+        read -p "Please enter SSL Certificat key path: " ssl_key_path
+    elif [[ "${ssl_type}" =~ ^2|3$ ]]; then
+        if [ ! -s "${ACME_SH_BIN}" ]; then
+            while :;do
+                read -p "Please enter your email address: " email
+                if [[ "${email}" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$ ]]; then
+                    echo "Email address ${email} is valid."
+                    break
+                else
+                    echo "Email address ${email} is invalid! Please re-enter."
+                fi
+            done
+        fi
+        ssl_cert_path="${APACHE_SSL_DIR}/${main_domain}.cer"
+        ssl_key_path="${APACHE_SSL_DIR}/${main_domain}.key"
+        if [[ "${ssl_type}" == "2" ]]; then
+            ca_server="--server letsencrypt"
+        elif [[ "${ssl_type}" == "3" ]]; then
+            ca_server="--server zerossl"
+        fi
+    fi
+}
+
+Install_Acmesh()
+{
+    if [ -s "${ACME_SH_BIN}" ]; then
+        echo "acme.sh ... found"
+    else
+        curl "${ACME_URL}" | sh -s -- --install-online -m ${email}
+    fi
+    . "/root/.acme.sh/acme.sh.env"
+}
+
+Issue_Cert()
+{
+    [ ! -d "${APACHE_SSL_DIR}" ] && mkdir -p "${APACHE_SSL_DIR}"
+    Install_Acmesh
+    acme_cmd="${ACME_SH_BIN} --issue"
+    for domain in ${domains}; do
+        acme_cmd+=" -d ${domain}"
+    done
+    acme_cmd+=" -w ${root_dir} ${ca_server} -k 2048 --key-file ${ssl_key_path} --fullchain-file ${ssl_cert_path} --reloadcmd \"/etc/init.d/httpd graceful\""
+    echo "Issue certificate for ${domains}..."
+    eval $acme_cmd
+}
+
+Create_Root_Dir()
+{
+    if [ ! -d "${root_dir}" ]; then
+        echo "Create VirtualHost directory for ${main_domain} ..."
+        mkdir -p "${root_dir}"
+        echo "Set permissions for the VirtualHost directory of the domain ${main_domain} ..."
+        chmod -R 755 "${root_dir}"
+        chown -R www:www "${root_dir}"
+    fi
+}
+
+Create_Vhost_Config()
+{
+    echo "Create Apache virutalhost for ${main_domain} ..."
+    cat > ${APACHE_VHOST_DIR}/${main_domain}.conf <<EOF
+<VirtualHost *:80>
+    ServerAdmin ${server_admin}
+    DocumentRoot "${root_dir}"
+    ServerName ${main_domain}
+    ${server_alias}
+
+    <Directory "${root_dir}">
+        SetOutputFilter DEFLATE
+        Options FollowSymLinks
+        AllowOverride All
+        Order allow,deny
+        Allow from all
+        DirectoryIndex index.html index.php
+    </Directory>
+
+    ${access_log}
+    ${error_log}
+</VirtualHost>
+
+EOF
+}
+
+Create_SSL_Vhost_Config()
+{
+    echo "Create Apache SSL virutalhost for ${main_domain} ..."
+    cat >> ${APACHE_VHOST_DIR}/${main_domain}.conf <<EOF
+<VirtualHost *:443>
+    ServerAdmin ${server_admin}
+    DocumentRoot ${root_dir}
+    ServerName ${domain}
+    ${server_alias}
+
+    SSLEngine on
+    Protocols h2 h2c http/1.1
+    SSLCertificateFile ${ssl_cert_path}
+    SSLCertificateKeyFile ${ssl_key_path}
+
+    <Directory "${root_dir}">
+        SetOutputFilter DEFLATE
+        Options FollowSymLinks
+        AllowOverride All
+        Order allow,deny
+        Allow from all
+        DirectoryIndex index.html index.php
+    </Directory>
+
+    ${access_log}
+    ${error_log}
+</VirtualHost>
+EOF
+}
+
+Is_SSL_Enabled()
+{
+    [ -f "${SSL_FLAG_FILE}" ]
+    return $?
+}
+
+Enable_SSL() {
+    echo "Enabling SSL configuration for the first time..."
+    
+    cp "$APACHE_CONF" "${APACHE_CONF}.bak.$(date +%Y%m%d%H%M%S)"
+    
+    sed -i 's/^#LoadModule ssl_module/LoadModule ssl_module/' "$APACHE_CONF"
+
+    sed -i 's/^#LoadModule http2_module/LoadModule http2_module/' "$APACHE_CONF"
+    
+    sed -i 's/^#Include conf\/extra\/httpd-ssl.conf/Include conf\/extra\/httpd-ssl.conf/' "$APACHE_CONF"
+    
+    [ ! -d "${APACHE_SSL_DIR}" ] && mkdir -p "${APACHE_SSL_DIR}"
+
+    touch "${SSL_FLAG_FILE}"
+
+    echo "SSL configuration has been enabled successfully."
+
+    Reload_Apache
+}
+
+Check_DB_Password() {
+    local password=$1
+
+    if ${MYSQL_BIN} -u root -p"${root_password}" -e "SELECT 1;" >/dev/null 2>&1; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+Verify_Root_Password() {
+    local max_attempts=3
+    local attempt=1
+    
+    while [ $attempt -le $max_attempts ]; do
+        read -sp "Enter MySQL root password: " root_password
+        
+        if Check_DB_Password "${root_password}"; then
+            echo "Password verified successfully."
+            return 0
+        else
+            echo "Invalid password. Attempt $attempt of $max_attempts"
+            attempt=$((attempt + 1))
+        fi
+    done
+    
+    echo "Maximum password attempts exceeded."
+    return 1
+}
+
+Create_DB() {
+    if ! Verify_Root_Password; then
+        return 1
+    fi
+    
+    read -p "Enter new database name: " db_name
+    read -sp "Enter new database user password: " db_password
+    
+    ${MYSQL_BIN} -u root -p"${root_password}" <<EOF
+    CREATE DATABASE IF NOT EXISTS ${db_name};
+    CREATE USER '${db_name}'@'localhost' IDENTIFIED BY '${db_password}';
+    GRANT ALL PRIVILEGES ON ${db_name}.* TO '${db_name}'@'localhost';
+    FLUSH PRIVILEGES;
+EOF
+    if [ $? -eq 0 ]; then
+        echo "Database and user ${db_name} created successfully."
+    else
+        echo "Failed to create the database and user."
+    fi
+}
+
+Del_DB() {
+    if ! Verify_Root_Password; then
+        return 1
+    fi
+    
+    read -p "Enter database name to delete: " db_name
+    
+    echo "WARNING: You are about to delete database ${db_name}"
+    read -p "Are you sure? (yes/no): " confirm1
+    [ "$confirm1" = "yes" ] || return 1
+    
+    read -p "Really sure? This cannot be undone (yes/no): " confirm2
+    [ "$confirm2" = "yes" ] || return 1
+    
+    read -p "Final confirmation. Type 'yes' to proceed: " confirm3
+    [ "$confirm3" = "yes" ] || return 1
+    
+    echo "Waiting 30 seconds before deletion..."
+    for i in {30..1}; do
+        echo -ne "\rDeleting in $i seconds..."
+        sleep 1
+    done
+    echo -e "\n"
+    
+    ${MYSQL_BIN} -u root -p"${root_password}" <<EOF
+    DROP DATABASE IF EXISTS ${db_name};
+    DROP USER IF EXISTS '${db_name}'@'localhost';
+    FLUSH PRIVILEGES;
+EOF
+    if [ $? -eq 0 ]; then
+        echo "Database and user ${db_name} deleted successfully"
+    else
+        echo "Failed to delete database and user."
+    fi
+}
+
+Change_DB_Password() {
+    if ! Verify_Root_Password; then
+        return 1
+    fi
+    
+    read -p "Enter database username: " username
+    read -sp "Enter new password: " new_password
+    
+    ${MYSQL_BIN} -u root -p"${root_password}" <<EOF
+    ALTER USER '${username}'@'localhost' IDENTIFIED BY '${new_password}';
+    FLUSH PRIVILEGES;
+EOF
+    if [ $? -eq 0 ]; then
+        echo "Password changed successfully for user ${username}"
+    else
+        echo "Failed to change password."
+    fi
+}
+
+Add_Vhost()
+{
+    Add_Vhost_Menu
+    Create_Vhost_Config
+    Create_Root_Dir
+    Reload_Apache
+    if [[ "${enable_ssl}" == "y" ]]; then
+        if [[ "${ssl_type}" =~ ^2|3$ ]]; then
+            Issue_Cert
+        fi
+        if [[ -s "${ssl_key_path}" && -s "${ssl_cert_path}" ]]; then
+            if ! Is_SSL_Enabled; then
+                Enable_SSL
+            fi
+            Create_SSL_Vhost_Config
+        else
+            echo "SSL SSL Certificate or key File not found."
+        fi
+    fi
+    Reload_Apache
+    printf "%0.s=" {1..60}
+    echo
+    echo   "  Domain: ${domains}"
+    echo "  Root Directory: ${root_dir}" 
+    echo "  Logging: $(if [[ "${enable_log}" == "y" ]]; then 
+        echo "Enabled"
+        echo "    - Access Log: /home/wwwlogs/${main_domain}.log"
+    else 
+        echo "Disabled"
+    fi)"
+    echo "  IPv6 Support: $(if [[ "${enable_ipv6}" == "y" ]]; then 
+        echo "Enabled"
+    else 
+        echo "Disabled"
+    fi)"
+    echo "  SSL Status: $(if [[ "${enable_ssl}" == "y" ]]; then 
+        echo "Enabled"
+        echo "    - Certificate Type: $(case ${ssl_type} in
+            1) echo "Custom Certificate";;
+            2) echo "Let's Encrypt";;
+            3) echo "ZeroSSL";;
+        esac)"
+        echo "    - Certificate Path: ${ssl_cert_path}"
+        echo "    - Private Key Path: ${ssl_key_path}"
+    else 
+        echo "Disabled"
+    fi)"
+    echo
+    echo "  Configuration File:"
+    echo "    ${APACHE_VHOST_DIR}/${main_domain}.conf"
+    printf "%0.s=" {1..60}
+    printf "\n"
+}
+
+Del_Vhost()
+{
+    read -p "Enter the main domain name: " domain
+    vhost_config="${APACHE_VHOST_DIR}/${domain}.conf"
+    if [ -f "${vhost_config}" ]; then
+        rm "${vhost_config}"
+        Reload_Apache
+        echo "Virtualhost ${domain} has been deleted."
+    else
+        echo "Virtualhost ${domain} does not exist."
+    fi
+}
+
+Check_Systemd()
+{
+    if [ "$(ps -p 1 -o comm=)" = "systemd" ]; then
+        return 0
+    fi
+
+    if command -v systemctl >/dev/null 2>&1 && systemctl list-units --type=service >/dev/null 2>&1; then
+        return 0
+    fi
+
+    if [ -d "/run/systemd/system" ]; then
+        return 0
+    fi
+
+    return 1
+}
+
+Manage_Service()
+{
+    local action=$1
+    local service=$2
+
+    if Check_Systemd; then
+        case $service in
+            all)
+                echo "$action all services: Apache, MySQL"
+                systemctl $action httpd
+                systemctl $action mysql
+                ;;
+            httpd)
+                echo "$action Apache ..."
+                systemctl $action httpd
+                ;;
+            mysql)
+                echo "$action MySQL ..."
+                systemctl $action mysql
+                ;;
+            *)
+                echo "Invalid service: $service"
+                echo "Available options: all, Apache, MySQL"
+                ;;
+        esac
+    else
+        case $service in
+            all)
+                echo "$action all services: Apache, MySQL"
+                /etc/init.d/httpd $action
+                /etc/init.d/mysql $action
+                ;;
+            httpd)
+                echo "$action Apache ..."
+                /etc/init.d/httpd $action
+                ;;
+            mysql)
+                echo "$action MySQL ..."
+                /etc/init.d/mysql $action
+                ;;
+            *)
+                echo "Invalid service: $service"
+                echo "Available options: all, apache, mysql"
+                ;;
+        esac
+    fi
+}
+
+case $1 in
+    vhost)
+        case $2 in
+            add)
+                Add_Vhost
+                ;;
+            del)
+                Del_Vhost
+                ;;
+            *)
+                echo "Usage: $0 vhost {add|del}"
+                ;;
+        esac
+        ;;
+    db)
+        case $2 in
+            add)
+                Create_DB
+                ;;
+            edit)
+                Change_DB_Password
+                ;;
+            del)
+                Del_DB
+                ;;
+            *)
+                echo "Usage: $0 db {add|edit|del}"
+                ;;
+        esac
+        ;;
+    restart|start|stop)
+        if [ -z "$2" ]; then
+            Manage_Service $1 all
+        else
+            Manage_Service $1 $2
+        fi
+        ;;
+    *)
+        echo "Useage: $0 vhost {add|del}"
+        echo "Useage: $0 db {add|editdel}"
+        echo "Useage: $0 {start|stop|restart} {apache|mysql}"
+        ;;
+esac
