@@ -58,23 +58,23 @@ Check_Apache()
 LNMP_Startup()
 {
     Enable_Startup nginx
+    Start nginx
     if [[ "${DBSelect}" != "0" ]]; then
         Enable_Startup mysql
-        systemctl start mysql
+        Start mysql
     fi
     Enable_Startup php-fpm
-    systemctl start nginx
-    systemctl start php-fpm
+    Start php-fpm
 }
 
 LAMP_Startup()
 {
     Enable_Startup httpd
+    Start httpd
     if [[ "${DBSelect}" != "0" ]]; then
         Enable_Startup mysql
-        systemctl start mysql
+        Start mysql
     fi
-    systemctl start httpd
 }
 
 Sucess_Msg()
@@ -95,6 +95,8 @@ LNMP_Check()
     Check_MySQL
     Check_PHP
     if [[ "${Nginx_Install_Status}" == "y" && "${MySQL_Install_Status}" == "y" && "${PHP_Install_Status}" == "y" ]]; then
+        \cp ${CUR_DIR}/conf/lxmp.n /bin/lxmp
+        chmod +x /bin/lxmp
         LNMP_Startup
         Sucess_Msg
     else
@@ -108,6 +110,8 @@ LAMP_Check()
     Check_MySQL
     Check_PHP
     if [[ "${Apache_Install_Status}" == "y" && "${MySQL_Install_Status}" == "y" && "${PHP_Install_Status}" == "y" ]]; then
+        \cp ${CUR_DIR}/conf/lxmp.a /bin/lxmp
+        chmod +x /bin/lxmp
         LAMP_Startup
         Sucess_Msg
     else

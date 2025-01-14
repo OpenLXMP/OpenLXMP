@@ -345,6 +345,30 @@ Disable_Startup()
     fi
 }
 
+Start()
+{
+    local service_name="$1"
+    Echo_Blue "Start ${service_name} ..."
+    if Check_Systemd && [[ -s /etc/systemd/system/${service_name}.service ]]; then
+        systemctl start ${service_name}.service
+    else
+        /etc/init.d/${service_name} start
+        fi
+    fi
+}
+
+Stop()
+{
+    local service_name="$1"
+    Echo_Blue "Stop ${service_name} ..."
+    if Check_Systemd && [[ -s /etc/systemd/system/${service_name}.service ]]; then
+        systemctl stop ${service_name}.service
+    else
+        /etc/init.d/${service_name} stop
+        fi
+    fi
+}
+
 Check_Stack()
 {
     if [[ -s /usr/local/php/sbin/php-fpm && -s /usr/local/nginx/sbin/nginx ]]; then
