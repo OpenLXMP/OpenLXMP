@@ -353,7 +353,6 @@ Start()
         systemctl start ${service_name}.service
     else
         /etc/init.d/${service_name} start
-        fi
     fi
 }
 
@@ -365,7 +364,6 @@ Stop()
         systemctl stop ${service_name}.service
     else
         /etc/init.d/${service_name} stop
-        fi
     fi
 }
 
