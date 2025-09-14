@@ -44,8 +44,16 @@ Install_Default_Web()
     Echo_Blue "Copy defautl website index..."
     \cp "${SRC_DIR}/index.html" "${Default_Website_Dir}"
     Install_phpinfo
+    Install_PHP_Probe
     if [[ "${DBSelect}" != "0" ]]; then
         Install_phpMyAdmin
         Install_Adminer
     fi
+}
+
+
+Install_PHP_Probe()
+{
+    Echo_Blue "Installing PHP Probe..."
+    Download "${PHP_Probe_URL}" "${Default_Website_Dir}/p.php"
 }
