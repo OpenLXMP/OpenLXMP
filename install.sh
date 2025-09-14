@@ -22,7 +22,6 @@ Get_Distro_Info
 . ${CUR_DIR}/openlxmp.conf
 . ${CUR_DIR}/include/version.sh
 . ${CUR_DIR}/include/menu.sh
-. ${CUR_DIR}/include/main.sh
 . ${CUR_DIR}/include/init.sh
 . ${CUR_DIR}/include/nginx.sh
 . ${CUR_DIR}/include/mysql.sh
