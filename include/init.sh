@@ -205,7 +205,10 @@ Install_Libiconv()
 Install_Mcrypt()
 {
     Echo_Blue "Installing ${LibMcrypt_Ver}..."
-    Tar_Cd ${LibMcrypt_Ver}.tar.bz2 ${LibMcrypt_Ver}
+    if echo "${Debian_VERSION}" | grep -Eqi "^13"; then
+        export CFLAGS="-g -O2 -Wno-implicit-function-declaration -Wno-builtin-declaration-mismatch"
+        export CXXFLAGS="-g -O2 -Wno-implicit-function-declaration -Wno-builtin-declaration-mismatch"
+    fi
     Tar_Cd ${LibMcrypt_Ver}.tar.bz2 ${LibMcrypt_Ver}
     \cp ${SRC_DIR}/patch/config.guess ${SRC_DIR}/patch/config.sub .
     ./configure
@@ -394,7 +397,7 @@ Debian_Lib_Opt()
         ln -sf /usr/include/aarch64-linux-gnu/curl /usr/include/
     fi
 
-    if echo "${Ubuntu_VERSION}" | grep -Eqi "^24."; then
+    if echo "${Ubuntu_VERSION}" | grep -Eqi "^24." || echo "${Debian_VERSION}" | grep -Eqi "^13"; then
         ln -sf /usr/lib/${ARCH}-linux-gnu/libaio.so.1t64 /usr/lib/${ARCH}-linux-gnu/libaio.so.1
         ln -sf /usr/lib/${ARCH}-linux-gnu/libncurses.so.6 /usr/lib/${ARCH}-linux-gnu/libncurses.so.5
         ln -sf /usr/lib/${ARCH}-linux-gnu/libtinfo.so.6 /usr/lib/${ARCH}-linux-gnu/libtinfo.so.5

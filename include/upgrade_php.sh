@@ -304,6 +304,7 @@ Upgrade_PHP_74()
     Install_Libzip
     Tar_Cd ${PHP_Ver}.tar.xz ${PHP_Ver}
     PHP_OpenSSL3_Patch
+    Debian13_PHP7_Patch
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \

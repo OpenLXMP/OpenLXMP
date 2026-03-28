@@ -190,6 +190,16 @@ Set_PHP()
     chmod +x /usr/local/bin/composer
 }
 
+Debian13_PHP7_Patch()
+{
+    if echo "${Debian_VERSION}" | grep -Eqi "^13"; then
+        sed -i 's/(const char \*\*) \&in_p/(char \*\*) \&in_p/g' ext/iconv/iconv.c
+
+        export CXXFLAGS="-std=c++17 -O2"
+        export CFLAGS="-O2"
+    fi
+}
+
 Install_PHP_56()
 {
     Echo_Blue "Installing ${PHP56_Ver}..."
@@ -388,7 +398,6 @@ Install_PHP_73()
     Download "${PHP73_URL}"
     Tar_Cd ${PHP73_Ver}.tar.xz ${PHP73_Ver}
     PHP_ICU_Patch
-    PHP_OpenSSL3_Patch
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \
@@ -435,6 +444,7 @@ Install_PHP_74()
     Download "${PHP74_URL}"
     Tar_Cd ${PHP74_Ver}.tar.xz ${PHP74_Ver}
     PHP_OpenSSL3_Patch
+    Debian13_PHP7_Patch
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \
