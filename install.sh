@@ -58,7 +58,9 @@ Init()
     Download_Files
     Install_Libiconv
     Install_Mhash
-    Install_Mcrypt
+    if [[ "${PHPSelect}" =~ ^(1|2|3)$ ]]; then
+        Install_Mcrypt
+    fi
     Install_Freetype
     if [[ "${PM}" == "yum" ]]; then
         Redhat_Lib_Opt
