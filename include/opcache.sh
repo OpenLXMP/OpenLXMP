@@ -40,7 +40,11 @@ opcache.jit_buffer_size = 64M
 EOF
     fi
 
-    if [[ -s "${php_ext_dir}/opcache.so" ]]; then
+    sed -i '/opcache\.so/d' /usr/local/php/conf.d/opcache.ini
+
+    if [[ ${cur_php_ver} =~ ^8\.5 ]]; then
+        Echo_Green "Opcache has been successfully installed."
+    elif [[ -s "${php_ext_dir}/opcache.so" ]]; then
         Echo_Green "Opcache has been successfully installed."
     else
         Echo_Red "Opcache install failed."

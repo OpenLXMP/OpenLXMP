@@ -95,6 +95,7 @@ LNMP_Stack()
         9) Install_PHP_82 ;;
         10) Install_PHP_83 ;;
         11) Install_PHP_84 ;;
+        12) Install_PHP_85 ;;
     esac
     Install_Default_Web
     LNMP_Check

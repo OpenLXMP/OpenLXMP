@@ -696,3 +696,45 @@ Install_PHP_84()
 
     Set_PHP
 }
+
+Install_PHP_85()
+{
+    Echo_Blue "Installing ${PHP84_Ver}..."
+    Install_Libzip
+    Download "${PHP85_URL}"
+    Tar_Cd ${PHP85_Ver}.tar.xz ${PHP85_Ver}
+    ./configure --prefix=/usr/local/php \
+    --with-config-file-path=/usr/local/php/etc \
+    --with-config-file-scan-dir=/usr/local/php/conf.d \
+    ${php_with_n_a} \
+    --enable-mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd \
+    --with-iconv=/usr/local --with-freetype=/usr/local/freetype \
+    --with-jpeg --with-zlib --enable-xml \
+    --disable-rpath --enable-bcmath \
+    --enable-shmop --enable-sysvsem \
+    --with-curl --with-openssl \
+    --enable-mbregex --enable-mbstring \
+    --enable-intl --enable-pcntl \
+    --enable-ftp --enable-gd \
+    --with-mhash --enable-pcntl \
+    --enable-sockets --with-zip \
+    --enable-soap --with-gettext \
+    --enable-exif \
+    ${with_fileinfo} \
+    --enable-intl \
+    --with-xsl \
+    --with-pear \
+    --with-webp \
+    ${php_with_options}
+
+    PHP_Make_And_Install
+
+    mkdir -p /usr/local/php/{etc,conf.d}
+    \cp php.ini-production /usr/local/php/etc/php.ini
+
+    if [[ "${STACK}" == "lnmp" ]]; then
+        Create_PHPFPM_Conf
+    fi
+
+    Set_PHP
+}
