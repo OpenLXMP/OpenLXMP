@@ -21,22 +21,26 @@ Upgrade_Nginx()
     Print_Sys_Info
     Echo_Blue "Upgrading Nginx ${Nginx_Ver}..."
     cd ${SRC_DIR}
-    Download "${OpenSSL_URL}" "${OpenSSL_Ver}.tar.gz"
+    Download "${OpenSSL3_URL}" "${OpenSSL3_Ver}.tar.gz"
     Download "http://nginx.org/download/nginx-${Nginx_Ver}.tar.gz" "nginx-${Nginx_Ver}.tar.gz"
-    Tar_Cd ${OpenSSL_Ver}.tar.gz
+    Tar_Cd ${OpenSSL3_Ver}.tar.gz
     Tar_Cd nginx-${Nginx_Ver}.tar.gz nginx-${Nginx_Ver}
     ./configure --user=www \
     --group=www \
     --prefix=/usr/local/nginx \
+    --with-file-aio \
+    --with-pcre-jit \
     --with-http_stub_status_module \
     --with-http_ssl_module \
     --with-http_v2_module \
+    --with-http_v3_module \
     --with-http_gzip_static_module \
     --with-http_sub_module --with-stream \
     --with-stream_ssl_module \
     --with-stream_ssl_preread_module \
     --with-http_realip_module \
-    --with-openssl=${SRC_DIR}/${OpenSSL_Ver} \
+    --with-http_gunzip_module \
+    --with-openssl=${SRC_DIR}/${OpenSSL3_Ver} \
     ${Nginx_Modules_Options}
 
     make -j${CPUCores}

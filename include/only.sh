@@ -132,7 +132,7 @@ Only_Install_Nginx()
     read -n 1 -s
     Install_Nginx_Dependency
     cd ${SRC_DIR}
-    Download "${OpenSSL_URL}" "${OpenSSL_Ver}.tar.gz"
+    Download "${OpenSSL3_URL}" "${OpenSSL3_Ver}.tar.gz"
     Download "${Nginx_URL}" "${Nginx_Ver}.tar.gz"
     Install_Nginx
     Check_Nginx

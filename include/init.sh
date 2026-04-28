@@ -164,6 +164,7 @@ Download_Files()
     Download "${Mhash_URL}" "${Mhash_Ver}.tar.bz2"
     if [[ "${STACK}" == "lnmp" ]]; then
         Download "${OpenSSL_URL}" "${OpenSSL_Ver}.tar.gz"
+        Download "${OpenSSL3_URL}" "${OpenSSL3_Ver}.tar.gz"
         Download "${Nginx_URL}" "${Nginx_Ver}.tar.gz"
     elif [[ "${STACK}" == "lamp" ]]; then
         Download "${APR_URL}" "${APR_Ver}.tar.bz2"

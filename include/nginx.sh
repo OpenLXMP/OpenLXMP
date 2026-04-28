@@ -3,20 +3,24 @@
 Install_Nginx()
 {
     Echo_Blue "Installing ${Nginx_Ver}..."
-    Tar_Cd ${OpenSSL_Ver}.tar.gz
+    Tar_Cd ${OpenSSL3_Ver}.tar.gz
     Tar_Cd ${Nginx_Ver}.tar.gz ${Nginx_Ver}
     ./configure --user=www \
     --group=www \
     --prefix=/usr/local/nginx \
+    --with-file-aio \
+    --with-pcre-jit \
     --with-http_stub_status_module \
     --with-http_ssl_module \
     --with-http_v2_module \
+    --with-http_v3_module \
     --with-http_gzip_static_module \
     --with-http_sub_module --with-stream \
     --with-stream_ssl_module \
     --with-stream_ssl_preread_module \
     --with-http_realip_module \
-    --with-openssl=${SRC_DIR}/${OpenSSL_Ver} \
+    --with-http_gunzip_module \
+    --with-openssl=${SRC_DIR}/${OpenSSL3_Ver} \
     ${Nginx_Modules_Options}
 
     Make_And_Install
@@ -47,4 +51,5 @@ Install_Nginx()
 
     cd ${SRC_DIR}
     rm -rf ${Nginx_Ver}
+    rm -rf ${OpenSSL3_Ver}
 }
