@@ -3,7 +3,7 @@ OpenLXMP是一个使用Bash shell编写的LNMP、LAMP环境的一键安装包，
 安装：
 以安装LNMP环境为例：
 
-`wget https://github.com/OpenLXMP/OpenLXMP/archive/main.zip && unzip main.zip && bash OpenLXMP-main/install.sh --lnmp`
+`wget https://github.com/OpenLXMP/OpenLXMP/archive/main.zip -O openlxmp.zip && unzip openlxmp.zip && bash OpenLXMP-main/install.sh --lnmp`
 
 如安装LAMP将 --lnmp 替换为 --lamp ，除此之外还可以将 --lnmp 替换为 --nginx 只安装nginx，--mysql 只安装MySQL。
 

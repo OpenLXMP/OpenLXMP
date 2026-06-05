@@ -4,7 +4,7 @@ Installation:
 
 To install the LNMP environment as an example:
 
-`wget https://github.com/OpenLXMP/OpenLXMP/archive/main.zip && unzip main.zip && bash OpenLXMP-main/install.sh --lnmp`
+`wget https://github.com/OpenLXMP/OpenLXMP/archive/main.zip -O openlxmp.zip && unzip openlxmp.zip && bash OpenLXMP-main/install.sh --lnmp`
 
 To install LAMP, replace --lnmp with --lamp. Additionally, you can replace --lnmp with --nginx to install only Nginx, or --mysql to install only MySQL.
 
