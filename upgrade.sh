@@ -30,6 +30,7 @@ Get_Distro_Info
 . ${CUR_DIR}/include/php.sh
 . ${CUR_DIR}/include/upgrade_php.sh
 . ${CUR_DIR}/include/upgrade_phpmyadmin.sh
+Check_Openssl
 
 Upgrade_Date=$(date +"%Y%m%d%H%M%S")
 
