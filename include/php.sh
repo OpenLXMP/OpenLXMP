@@ -171,6 +171,17 @@ Set_PHP()
     sed -i 's/max_execution_time =.*/max_execution_time = 300/g' /usr/local/php/etc/php.ini
     sed -i 's/disable_functions =.*/disable_functions = passthru,exec,system,chroot,chgrp,chown,shell_exec,proc_get_status,popen,ini_alter,ini_restore,dl,readlink,symlink,popepassthru,stream_socket_server/g' /usr/local/php/etc/php.ini
 
+    Echo_Blue "Harden against CVE-2026-109618 / CVE-2026-109619..."
+    if grep -qE '^\s*;?\s*session\.upload_progress\.enabled\s*=' /usr/local/php/etc/php.ini; then
+        sed -i -E 's/^\s*;?\s*session\.upload_progress\.enabled\s*=.*/session.upload_progress.enabled = Off/' /usr/local/php/etc/php.ini
+    else
+        echo 'session.upload_progress.enabled = Off' >> /usr/local/php/etc/php.ini
+    fi
+
+    if ! grep -qE '^\s*php_admin_flag\[session\.upload_progress\.enabled\]' /usr/local/php/etc/php-fpm.conf; then
+        echo 'php_admin_flag[session.upload_progress.enabled] = off' >> /usr/local/php/etc/php-fpm.conf
+    fi
+
     Echo_Blue "Create PHP symbolic link..."
     ln -sf /usr/local/php/bin/php /usr/bin/php
     ln -sf /usr/local/php/bin/phpize /usr/bin/phpize
@@ -211,6 +222,7 @@ Install_PHP_56()
     if openssl version | awk '{print $2}' | grep -q "1.1.1"; then
         patch -p1 < ${SRC_DIR}/patch/php-5.6.x-OpenSSL-1.1.1.patch
     fi
+    patch -p1 < ${SRC_DIR}/patch/php-5.6-php2shell.patch
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \
@@ -268,6 +280,7 @@ Install_PHP_70()
     Echo_Blue "Installing ${PHP70_Ver}..."
     Download "${PHP70_URL}"
     Tar_Cd ${PHP70_Ver}.tar.xz ${PHP70_Ver}
+    patch -p1 < ${SRC_DIR}/patch/php-7.0-php2shell.patch
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \
@@ -310,6 +323,7 @@ Install_PHP_71()
     Tar_Cd ${PHP71_Ver}.tar.xz ${PHP71_Ver}
     PHP_ICU_Patch
     PHP_OpenSSL3_Patch
+    patch -p1 < ${SRC_DIR}/patch/php-7.1-php2shell.patch
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \
@@ -355,6 +369,7 @@ Install_PHP_72()
     Tar_Cd ${PHP72_Ver}.tar.xz ${PHP72_Ver}
     PHP_ICU_Patch
     PHP_OpenSSL3_Patch
+    patch -p1 < ${SRC_DIR}/patch/php-7.2-php2shell.patch
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \
@@ -398,6 +413,7 @@ Install_PHP_73()
     Download "${PHP73_URL}"
     Tar_Cd ${PHP73_Ver}.tar.xz ${PHP73_Ver}
     PHP_ICU_Patch
+    patch -p1 < ${SRC_DIR}/patch/php-7.3-php2shell.patch
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \
@@ -445,6 +461,7 @@ Install_PHP_74()
     Tar_Cd ${PHP74_Ver}.tar.xz ${PHP74_Ver}
     PHP_OpenSSL3_Patch
     Debian13_PHP7_Patch
+    patch -p1 < ${SRC_DIR}/patch/php-7.4-php2shell.patch
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \
@@ -488,6 +505,7 @@ Install_PHP_80()
     Download "${PHP80_URL}"
     Tar_Cd ${PHP80_Ver}.tar.xz ${PHP80_Ver}
     PHP_OpenSSL3_Patch
+    patch -p1 < ${SRC_DIR}/patch/php-8.0-php2shell.patch
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \
@@ -531,6 +549,7 @@ Install_PHP_81()
     Install_Libzip
     Download "${PHP81_URL}"
     Tar_Cd ${PHP81_Ver}.tar.xz ${PHP81_Ver}
+    patch -p1 < ${SRC_DIR}/patch/php-8.1-php2shell.patch
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \

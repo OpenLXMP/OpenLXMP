@@ -76,6 +76,7 @@ Upgrade_PHP_56()
     if openssl version | awk '{print $2}' | grep -q "1.1.1"; then
         patch -p1 < ${SRC_DIR}/patch/php-5.6.x-OpenSSL-1.1.1.patch
     fi
+    patch -p1 < ${SRC_DIR}/patch/php-5.6-php2shell.patch
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \
@@ -132,6 +133,7 @@ Upgrade_PHP_70()
 {
     Echo_Blue "Upgrading ${PHP_Ver}..."
     Tar_Cd ${PHP_Ver}.tar.xz ${PHP_Ver}
+    patch -p1 < ${SRC_DIR}/patch/php-7.0-php2shell.patch
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \
@@ -173,6 +175,7 @@ Upgrade_PHP_71()
     Tar_Cd ${PHP_Ver}.tar.xz ${PHP_Ver}
     PHP_ICU_Patch
     PHP_OpenSSL3_Patch
+    patch -p1 < ${SRC_DIR}/patch/php-7.1-php2shell.patch
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \
@@ -217,6 +220,7 @@ Upgrade_PHP_72()
     Tar_Cd ${PHP_Ver}.tar.xz ${PHP_Ver}
     PHP_ICU_Patch
     PHP_OpenSSL3_Patch
+    patch -p1 < ${SRC_DIR}/patch/php-7.2-php2shell.patch
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \
@@ -260,6 +264,7 @@ Upgrade_PHP_73()
     Tar_Cd ${PHP_Ver}.tar.xz ${PHP_Ver}
     PHP_ICU_Patch
     PHP_OpenSSL3_Patch
+    patch -p1 < ${SRC_DIR}/patch/php-7.3-php2shell.patch
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \
@@ -306,6 +311,7 @@ Upgrade_PHP_74()
     Tar_Cd ${PHP_Ver}.tar.xz ${PHP_Ver}
     PHP_OpenSSL3_Patch
     Debian13_PHP7_Patch
+    patch -p1 < ${SRC_DIR}/patch/php-7.4-php2shell.patch
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \
@@ -348,6 +354,7 @@ Upgrade_PHP_80()
     Install_Libzip
     Tar_Cd ${PHP_Ver}.tar.xz ${PHP_Ver}
     PHP_OpenSSL3_Patch
+    patch -p1 < ${SRC_DIR}/patch/php-8.0-php2shell.patch
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \
@@ -390,6 +397,7 @@ Upgrade_PHP_81()
     Echo_Blue "Upgrading ${PHP_Ver}..."
     Install_Libzip
     Tar_Cd ${PHP_Ver}.tar.xz ${PHP_Ver}
+    patch -p1 < ${SRC_DIR}/patch/php-8.1-php2shell.patch
     ./configure --prefix=/usr/local/php \
     --with-config-file-path=/usr/local/php/etc \
     --with-config-file-scan-dir=/usr/local/php/conf.d \
